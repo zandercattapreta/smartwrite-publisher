@@ -1,5 +1,18 @@
 # Changelog: SmartWrite Publisher
 
+## [0.1.7] - 2026-01-18
+
+### Adicionado
+
+- **Logger Service**: Novo sistema de logs internos para diagnóstico de erros.
+- **Seção de Logs na Sidebar**: Visualização em tempo real dos eventos de sistema.
+- **Botão Copiar Logs**: Facilita o envio de relatórios para suporte.
+
+### Fixo
+
+- **Crise de Conexão**: Melhoria nos headers de request (User-Agent e Accept) para evitar bloqueios.
+- **Diagnóstico Detalhado**: Captura do código HTTP e corpo da resposta em caso de erro.
+
 ## [0.1.6] - 2026-01-18
 
 ### Fixo

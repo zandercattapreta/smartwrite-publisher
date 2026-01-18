@@ -2,6 +2,7 @@ import { Notice, Plugin, TFile, WorkspaceLeaf } from 'obsidian';
 import { PublisherView, VIEW_TYPE_PUBLISHER } from "./view";
 import { SmartWriteSettingTab } from "./settings";
 import { HelpModal } from "./modal";
+import { Logger } from "./logger";
 
 export interface SmartWriteSettings {
 	cookies: string;
@@ -15,6 +16,7 @@ const DEFAULT_SETTINGS: SmartWriteSettings = {
 
 export default class SmartWritePublisher extends Plugin {
 	settings: SmartWriteSettings;
+	logger: Logger = new Logger();
 
 	async onload() {
 		try {

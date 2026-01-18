@@ -102,6 +102,33 @@ export class PublisherView extends ItemView {
 
 		const testBtn = settingsSection.createEl("button", { text: "Test Connection" });
 		testBtn.onclick = () => this.testConnection();
+
+		// --- Section: System Logs ---
+		const logSection = container.createDiv({ cls: "publisher-section log-section" });
+		const logHeader = logSection.createDiv({ cls: "log-header" });
+		logHeader.createEl("h5", { text: "Logs de Sistema" });
+		const copyLogBtn = logHeader.createEl("button", { 
+			text: "Copiar", 
+			cls: "log-copy-btn",
+			attr: { "aria-label": "Copiar logs para suporte" }
+		});
+		copyLogBtn.onclick = () => {
+			navigator.clipboard.writeText(this.plugin.logger.getFormattedLogs());
+			new Notice("Logs copiados para a área de transferência.");
+		};
+
+		const logConsole = logSection.createDiv({ cls: "log-console" });
+		const logs = this.plugin.logger.getLogs();
+		if (logs.length === 0) {
+			logConsole.createEl("p", { text: "Nenhum evento registrado.", cls: "empty-log" });
+		} else {
+			logs.forEach(l => {
+				const line = logConsole.createDiv({ cls: `log-line ${l.level.toLowerCase()}` });
+				line.createSpan({ text: l.timestamp.split('T')[1].split('.')[0], cls: "log-time" });
+				line.createSpan({ text: ` [${l.level}] `, cls: "log-level" });
+				line.createSpan({ text: l.message, cls: "log-msg" });
+			});
+		}
 	}
 
 	updateActiveNote(file: TFile) {
@@ -119,46 +146,59 @@ export class PublisherView extends ItemView {
 			return;
 		}
 
-		new Notice("Testando conexão...");
+		this.plugin.logger.log("Iniciando teste de conexão...");
+		const notice = new Notice("Testando conexão...", 0);
 		
 		// Limpeza e normalização do Cookie
 		let cookieValue = this.plugin.settings.cookies.trim();
-		
-		// 1. Decodificar se estiver URL Encoded (ex: s%3A -> s:)
 		if (cookieValue.includes("%3A")) {
+			this.plugin.logger.log("Decodificando cookie URL encoded.");
 			cookieValue = decodeURIComponent(cookieValue);
 		}
-		
-		// 2. Remover prefixo se colado por engano
 		if (cookieValue.startsWith("substack.sid=")) {
 			cookieValue = cookieValue.replace("substack.sid=", "");
 		}
 
 		try {
+			const targetUrl = "https://substack.com/api/v1/user";
+			this.plugin.logger.log(`Request para: ${targetUrl}`);
+
 			const response = await requestUrl({
-				url: "https://substack.com/api/v1/user",
+				url: targetUrl,
 				method: "GET",
 				headers: {
-					"Cookie": `substack.sid=${cookieValue}`
+					"Cookie": `substack.sid=${cookieValue}`,
+					"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Obsidian/1.0.0",
+					"Accept": "application/json"
 				},
 				throw: false
+			});
+
+			this.plugin.logger.log(`Resposta recebida: ${response.status}`, 'INFO', { 
+				url: targetUrl,
+				status: response.status,
+				body: response.text.substring(0, 200) // Logar início do corpo para diagnóstico
 			});
 
 			if (response.status === 200 && response.json.id) {
 				this.isConnected = true;
 				new Notice(`Sucesso! Conectado como: ${response.json.name || response.json.email}`);
+				this.plugin.logger.log(`Conexão bem-sucedida para o usuário: ${response.json.email}`);
 			} else {
 				this.isConnected = false;
-				const errorMsg = response.status === 403 ? "Não autorizado (403). Verifique se o cookie expirou." : 
+				const errorMsg = response.status === 404 ? "Erro 404: Endpoint não encontrado. A API do Substack pode ter mudado." :
+								 response.status === 403 ? "Não autorizado (403). Verifique se o cookie expirou ou se há bloqueio de IP." : 
 								 response.status === 401 ? "Não autorizado (401). Cookie inválido." : 
-								 `Erro ${response.status}. Verifique seus dados.`;
+								 `Erro ${response.status}. Verifique o log de sistema.`;
 				new Notice(errorMsg);
-				console.error("Substack Auth Fail:", response);
+				this.plugin.logger.log(`Falha na autenticação: ${response.status}`, 'ERROR', response.text);
 			}
 		} catch (error) {
 			this.isConnected = false;
 			new Notice("Erro de Rede: Não foi possível alcançar o Substack.");
-			console.error("Erro ao testar conexão:", error);
+			this.plugin.logger.log("Exceção de rede no Test Connection", 'ERROR', error);
+		} finally {
+			notice.hide();
 		}
 		
 		if (this.connectionDotEl && this.connectionTextEl) {
