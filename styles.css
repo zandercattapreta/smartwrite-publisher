@@ -1,8 +1,3 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
 /* Sidebar Sidebar View */
 
 .smartwrite-publisher-sidebar {
@@ -12,13 +7,41 @@ available in the app when your plugin is enabled.
 	gap: 20px;
 }
 
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    border-bottom: 2px solid var(--background-modifier-border);
+    padding-bottom: 10px;
+}
+
+.sidebar-header h4 {
+    margin: 0;
+    color: var(--text-accent);
+}
+
+.help-icon {
+    padding: 6px;
+    border-radius: 4px;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.help-icon:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
 .publisher-section {
 	border-bottom: 1px solid var(--background-modifier-border);
 	padding-bottom: 15px;
 }
 
 .publisher-section h5 {
-	margin-top: 0;
+	margin-top: 10px;
 	color: var(--text-accent);
 }
 
@@ -50,6 +73,20 @@ available in the app when your plugin is enabled.
 
 .status-dot.red { background-color: var(--text-error); }
 .status-dot.green { background-color: var(--text-success); }
-If your plugin does not need CSS, delete this file.
 
-*/
+/* Help Modal Styling */
+.smartwrite-help-modal ol {
+    margin-top: 20px;
+}
+
+.smartwrite-help-modal li {
+    margin-bottom: 10px;
+}
+
+.help-note {
+    font-size: 0.9em;
+    color: var(--text-warning);
+    border-left: 2px solid var(--text-warning);
+    padding-left: 10px;
+    margin: 20px 0;
+}

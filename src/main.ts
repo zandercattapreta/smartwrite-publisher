@@ -1,5 +1,7 @@
 import { Notice, Plugin, TFile, WorkspaceLeaf } from 'obsidian';
 import { PublisherView, VIEW_TYPE_PUBLISHER } from "./view";
+import { SmartWriteSettingTab } from "./settings";
+import { HelpModal } from "./modal";
 
 export interface SmartWriteSettings {
 	cookies: string;
@@ -8,33 +10,52 @@ export interface SmartWriteSettings {
 
 const DEFAULT_SETTINGS: SmartWriteSettings = {
 	cookies: '',
-	substackUrl: 'https://thebreachrpg.substack.com'
+	substackUrl: ''
 }
 
 export default class SmartWritePublisher extends Plugin {
 	settings: SmartWriteSettings;
 
 	async onload() {
-		await this.loadSettings();
-		this.registerView(
-			VIEW_TYPE_PUBLISHER,
-			(leaf) => new PublisherView(leaf, this)
-		);
+		console.log("SmartWrite Publisher: Iniciando carregamento...");
+		try {
+			await this.loadSettings();
 
-		this.addRibbonIcon('share-2', 'SmartWrite Publisher', () => {
-			this.activateView();
-		});
+			this.addSettingTab(new SmartWriteSettingTab(this.app, this));
 
-		this.addCommand({
-			id: 'open-smartwrite-publisher',
-			name: 'Open Sidebar',
-			callback: () => this.activateView(),
-		});
+			this.registerView(
+				VIEW_TYPE_PUBLISHER,
+				(leaf) => {
+					console.log("SmartWrite Publisher: Registrando view...");
+					return new PublisherView(leaf, this);
+				}
+			);
 
-		// Evento para detectar mudança de nota ativa
-		this.registerEvent(
-			this.app.workspace.on('active-leaf-change', () => this.updateActiveNote())
-		);
+			this.addRibbonIcon('share-2', 'SmartWrite Publisher', () => {
+				console.log("SmartWrite Publisher: Botão Ribbon clicado.");
+				this.activateView();
+			});
+
+			this.addCommand({
+				id: 'open-smartwrite-publisher',
+				name: 'Open Sidebar',
+				callback: () => {
+					console.log("SmartWrite Publisher: Comando disparado.");
+					this.activateView();
+				},
+			});
+
+			// Evento para detectar mudança de nota ativa
+			this.registerEvent(
+				this.app.workspace.on('active-leaf-change', () => {
+					console.log("SmartWrite Publisher: Nota ativa mudou.");
+					this.updateActiveNote();
+				})
+			);
+			console.log("SmartWrite Publisher: Carregado com sucesso.");
+		} catch (e) {
+			console.error("SmartWrite Publisher: Falha crítica no onload:", e);
+		}
 	}
 
 	async updateActiveNote() {

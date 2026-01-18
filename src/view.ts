@@ -22,17 +22,31 @@ export class PublisherView extends ItemView {
 	}
 
 	async onOpen() {
+		console.log("SmartWrite Publisher: Abrindo sidebar...");
 		this.render();
 	}
 
 	render() {
+		console.log("SmartWrite Publisher: Renderizando interface...");
 		const container = this.containerEl.children[1];
-		if (!container) return;
-		
+		if (!container) {
+			console.warn("SmartWrite Publisher: Conteiner não encontrado na sidebar.");
+			return;
+		}
 		container.empty();
 		container.addClass("smartwrite-publisher-sidebar");
 
-		container.createEl("h4", { text: "SmartWrite Publisher" });
+		const header = container.createDiv({ cls: "sidebar-header" });
+		header.createEl("h4", { text: "SmartWrite Publisher" });
+		const helpBtn = header.createEl("button", { 
+			cls: "clickable-icon help-icon",
+			attr: { "aria-label": "Como usar" }
+		});
+		helpBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-help-circle"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>';
+		helpBtn.onclick = () => {
+			const { HelpModal } = require("./modal");
+			new HelpModal(this.app).open();
+		};
 
 		// --- Section: Active Note ---
 		const activeNoteSection = container.createDiv({ cls: "publisher-section" });
