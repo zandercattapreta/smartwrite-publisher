@@ -4,7 +4,7 @@
 	"version": "0.1.4",
 	"minAppVersion": "0.15.0",
 	"description": "Automatizador de publicações para Substack diretamente do Obsidian.",
-	"author": "Zander CP",
+	"author": "Zander Catta Preta",
 	"authorUrl": "https://github.com/zandercpzed/smartwrite-publisher",
 	"isDesktopOnly": true
 }
