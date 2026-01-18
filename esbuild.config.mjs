@@ -1,6 +1,8 @@
 import esbuild from "esbuild";
 import process from "process";
 import { builtinModules } from 'node:module';
+import fs from "fs";
+import path from "path";
 
 const banner =
 `/*
@@ -10,6 +12,18 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = (process.argv[2] === "production");
+
+const OBSIDIAN_PLUGIN_PATH = "/Users/zander/Library/CloudStorage/GoogleDrive-zander.cattapreta@zedicoes.com/Shared drives/Hexplore Publishing/# The Breach/.obsidian/plugins/smartwrite-publisher";
+
+const copyToObsidian = () => {
+	if (!fs.existsSync(OBSIDIAN_PLUGIN_PATH)) {
+		fs.mkdirSync(OBSIDIAN_PLUGIN_PATH, { recursive: true });
+	}
+	fs.copyFileSync("main.js", path.join(OBSIDIAN_PLUGIN_PATH, "main.js"));
+	fs.copyFileSync("manifest.json", path.join(OBSIDIAN_PLUGIN_PATH, "manifest.json"));
+	fs.copyFileSync("styles.css", path.join(OBSIDIAN_PLUGIN_PATH, "styles.css"));
+	console.log("Plugin deployed to Obsidian.");
+};
 
 const context = await esbuild.context({
 	banner: {
@@ -43,6 +57,7 @@ const context = await esbuild.context({
 
 if (prod) {
 	await context.rebuild();
+	copyToObsidian();
 	process.exit(0);
 } else {
 	await context.watch();
