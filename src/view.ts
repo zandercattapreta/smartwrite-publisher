@@ -21,18 +21,20 @@ export class PublisherView extends ItemView {
 		return "SmartWrite Publisher";
 	}
 
+	// Referências para elementos dinâmicos (otimização)
+	noteNameEl: HTMLParagraphElement;
+	statusBadgeEl: HTMLSpanElement;
+	connectionDotEl: HTMLSpanElement;
+	connectionTextEl: HTMLSpanElement;
+
 	async onOpen() {
-		console.log("SmartWrite Publisher: Abrindo sidebar...");
 		this.render();
 	}
 
 	render() {
-		console.log("SmartWrite Publisher: Renderizando interface...");
 		const container = this.containerEl.children[1];
-		if (!container) {
-			console.warn("SmartWrite Publisher: Conteiner não encontrado na sidebar.");
-			return;
-		}
+		if (!container) return;
+		
 		container.empty();
 		container.addClass("smartwrite-publisher-sidebar");
 
@@ -52,12 +54,12 @@ export class PublisherView extends ItemView {
 		const activeNoteSection = container.createDiv({ cls: "publisher-section" });
 		activeNoteSection.createEl("h5", { text: "Nota Ativa" });
 		const noteInfo = activeNoteSection.createDiv({ cls: "note-info" });
-		noteInfo.createEl("p", { 
+		this.noteNameEl = noteInfo.createEl("p", { 
 			text: this.activeFile ? this.activeFile.basename : "Nenhuma nota selecionada", 
 			cls: "note-name" 
 		});
 		
-		activeNoteSection.createSpan({ text: "Pendente", cls: "status-badge" });
+		this.statusBadgeEl = activeNoteSection.createSpan({ text: "Pendente", cls: "status-badge" });
 
 		const actionButtons = activeNoteSection.createDiv({ cls: "action-buttons" });
 		actionButtons.createEl("button", { text: "Publish Live", cls: "mod-cta" });
@@ -77,8 +79,8 @@ export class PublisherView extends ItemView {
 		settingsSection.createEl("h5", { text: "Configurações Rápidas" });
 		
 		const connectionStatus = settingsSection.createDiv({ cls: "connection-status" });
-		connectionStatus.createSpan({ cls: `status-dot ${this.isConnected ? 'green' : 'red'}` });
-		connectionStatus.createSpan({ text: this.isConnected ? " Conectado" : " Desconectado" });
+		this.connectionDotEl = connectionStatus.createSpan({ cls: `status-dot ${this.isConnected ? 'green' : 'red'}` });
+		this.connectionTextEl = connectionStatus.createSpan({ text: this.isConnected ? " Conectado" : " Desconectado" });
 
 		const cookieInput = settingsSection.createEl("input", { 
 			attr: { type: "password", placeholder: "Colar Cookies (substack.sid)" } 
@@ -104,7 +106,11 @@ export class PublisherView extends ItemView {
 
 	updateActiveNote(file: TFile) {
 		this.activeFile = file;
-		this.render();
+		if (this.noteNameEl) {
+			this.noteNameEl.setText(file.basename);
+		} else {
+			this.render();
+		}
 	}
 
 	async testConnection() {
@@ -115,7 +121,6 @@ export class PublisherView extends ItemView {
 
 		new Notice("Testando conexão...");
 		try {
-			// Endpoint leve do Substack para validar sessão
 			const response = await requestUrl({
 				url: "https://substack.com/api/v1/user",
 				method: "GET",
@@ -133,10 +138,15 @@ export class PublisherView extends ItemView {
 			}
 		} catch (error) {
 			this.isConnected = false;
-			console.error("Erro ao testar conexão:", error);
 			new Notice("Erro ao conectar ao Substack. Verifique sua rede e cookies.");
 		}
-		this.render();
+		
+		if (this.connectionDotEl && this.connectionTextEl) {
+			this.connectionDotEl.className = `status-dot ${this.isConnected ? 'green' : 'red'}`;
+			this.connectionTextEl.setText(this.isConnected ? " Conectado" : " Desconectado");
+		} else {
+			this.render();
+		}
 	}
 
 	async onClose() {

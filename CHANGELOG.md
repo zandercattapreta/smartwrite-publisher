@@ -1,5 +1,13 @@
 # Changelog: SmartWrite Publisher
 
+## [0.1.3] - 2026-01-18
+
+### Otimizado
+
+- **Partial Rendering**: A Sidebar agora atualiza apenas os elementos necessários em vez de reconstruir todo o DOM.
+- **Debounce**: Detecção de nota ativa agora possui um atraso inteligente de 500ms para evitar sobrecarga em navegação rápida.
+- **Logs**: Removidos logs de diagnóstico verbosos para manter o console limpo.
+
 ## [0.1.2] - 2026-01-18
 
 ### Fixo

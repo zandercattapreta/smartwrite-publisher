@@ -17,7 +17,6 @@ export default class SmartWritePublisher extends Plugin {
 	settings: SmartWriteSettings;
 
 	async onload() {
-		console.log("SmartWrite Publisher: Iniciando carregamento...");
 		try {
 			await this.loadSettings();
 
@@ -25,37 +24,36 @@ export default class SmartWritePublisher extends Plugin {
 
 			this.registerView(
 				VIEW_TYPE_PUBLISHER,
-				(leaf) => {
-					console.log("SmartWrite Publisher: Registrando view...");
-					return new PublisherView(leaf, this);
-				}
+				(leaf) => new PublisherView(leaf, this)
 			);
 
 			this.addRibbonIcon('share-2', 'SmartWrite Publisher', () => {
-				console.log("SmartWrite Publisher: Botão Ribbon clicado.");
 				this.activateView();
 			});
 
 			this.addCommand({
 				id: 'open-smartwrite-publisher',
 				name: 'Open Sidebar',
-				callback: () => {
-					console.log("SmartWrite Publisher: Comando disparado.");
-					this.activateView();
-				},
+				callback: () => this.activateView(),
 			});
 
-			// Evento para detectar mudança de nota ativa
+			// Evento para detectar mudança de nota ativa com DEBOUNCE
+			const debouncedUpdate = this.debounce(() => this.updateActiveNote(), 500);
 			this.registerEvent(
-				this.app.workspace.on('active-leaf-change', () => {
-					console.log("SmartWrite Publisher: Nota ativa mudou.");
-					this.updateActiveNote();
-				})
+				this.app.workspace.on('active-leaf-change', debouncedUpdate)
 			);
-			console.log("SmartWrite Publisher: Carregado com sucesso.");
 		} catch (e) {
 			console.error("SmartWrite Publisher: Falha crítica no onload:", e);
 		}
+	}
+
+	// Utilitário de Debounce para otimização
+	debounce(func: Function, wait: number) {
+		let timeout: NodeJS.Timeout;
+		return (...args: any[]) => {
+			clearTimeout(timeout);
+			timeout = setTimeout(() => func.apply(this, args), wait);
+		};
 	}
 
 	async updateActiveNote() {
