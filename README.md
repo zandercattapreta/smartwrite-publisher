@@ -44,4 +44,4 @@ Este projeto é licenciado sob a licença **MIT**. Veja o arquivo [LICENSE](LICE
 
 ---
 
-Desenvolvido por [Zander CP](https://github.com/zandercpzed/smartwrite-publisher).
+Desenvolvido por [Zander Catta Preta](https://github.com/zandercpzed/smartwrite-publisher).
