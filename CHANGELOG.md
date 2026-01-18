@@ -1,5 +1,18 @@
 # Changelog: SmartWrite Publisher
 
+## [0.1.6] - 2026-01-18
+
+### Fixo
+
+- **Smart Cookie Parsing**: O plugin agora decodifica automaticamente cookies no formato `s%3A` e limpa prefixos `substack.sid=` para evitar erros de cópia.
+- **Autor**: Confirmação global do nome **Zander Catta Preta**.
+
+## [0.1.5] - 2026-01-18
+
+### Alterado
+
+- Nome do autor atualizado para **Zander Catta Preta** em todos os metadados e documentação.
+
 ## [0.1.4] - 2026-01-18
 
 ### Fixo

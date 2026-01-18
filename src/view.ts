@@ -120,14 +120,28 @@ export class PublisherView extends ItemView {
 		}
 
 		new Notice("Testando conexão...");
+		
+		// Limpeza e normalização do Cookie
+		let cookieValue = this.plugin.settings.cookies.trim();
+		
+		// 1. Decodificar se estiver URL Encoded (ex: s%3A -> s:)
+		if (cookieValue.includes("%3A")) {
+			cookieValue = decodeURIComponent(cookieValue);
+		}
+		
+		// 2. Remover prefixo se colado por engano
+		if (cookieValue.startsWith("substack.sid=")) {
+			cookieValue = cookieValue.replace("substack.sid=", "");
+		}
+
 		try {
 			const response = await requestUrl({
 				url: "https://substack.com/api/v1/user",
 				method: "GET",
 				headers: {
-					"Cookie": `substack.sid=${this.plugin.settings.cookies}`
+					"Cookie": `substack.sid=${cookieValue}`
 				},
-				throw: false // Impede que o Obsidian jogue um erro genérico
+				throw: false
 			});
 
 			if (response.status === 200 && response.json.id) {
@@ -135,7 +149,7 @@ export class PublisherView extends ItemView {
 				new Notice(`Sucesso! Conectado como: ${response.json.name || response.json.email}`);
 			} else {
 				this.isConnected = false;
-				const errorMsg = response.status === 403 ? "Acesso Proibido (403). Verifique se o cookie expirou." : 
+				const errorMsg = response.status === 403 ? "Não autorizado (403). Verifique se o cookie expirou." : 
 								 response.status === 401 ? "Não autorizado (401). Cookie inválido." : 
 								 `Erro ${response.status}. Verifique seus dados.`;
 				new Notice(errorMsg);
