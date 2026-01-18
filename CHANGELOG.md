@@ -1,5 +1,12 @@
 # Changelog: SmartWrite Publisher
 
+## [0.1.2] - 2026-01-18
+
+### Fixo
+
+- Sincronização e deploy para ambiente de testes.
+- Garantia de que o bundle reflete as últimas alterações de UX e Logs.
+
 ## [0.1.1] - 2026-01-18
 
 ### Adicionado
