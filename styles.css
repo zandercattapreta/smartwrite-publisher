@@ -1,0 +1,55 @@
+/*
+
+This CSS file will be included with your plugin, and
+available in the app when your plugin is enabled.
+
+/* Sidebar Sidebar View */
+
+.smartwrite-publisher-sidebar {
+	padding: 15px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.publisher-section {
+	border-bottom: 1px solid var(--background-modifier-border);
+	padding-bottom: 15px;
+}
+
+.publisher-section h5 {
+	margin-top: 0;
+	color: var(--text-accent);
+}
+
+.status-badge {
+	background-color: var(--background-secondary);
+	padding: 2px 8px;
+	border-radius: 12px;
+	font-size: 0.8em;
+	color: var(--text-muted);
+}
+
+.action-buttons {
+	display: flex;
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.settings-section input {
+	width: 100%;
+	margin-bottom: 10px;
+}
+
+.status-dot {
+	height: 10px;
+	width: 10px;
+	border-radius: 50%;
+	display: inline-block;
+}
+
+.status-dot.red { background-color: var(--text-error); }
+.status-dot.green { background-color: var(--text-success); }
+If your plugin does not need CSS, delete this file.
+
+*/

@@ -1,18 +1,22 @@
-# Folders to ignore at the project root
-_ BKPs/
-_ docs/
-_ skills/
-_ test files/
+# vscode
+.vscode 
 
-# System and editor files
+# Intellij
+*.iml
+.idea
+
+# npm
+node_modules
+
+# Don't include the compiled main.js file in the repo.
+# They should be uploaded to GitHub releases instead.
+main.js
+
+# Exclude sourcemaps
+*.map
+
+# obsidian
+data.json
+
+# Exclude macOS Finder (System Explorer) View States
 .DS_Store
-
-# Obsidian configuration
-.obsidian/
-
-# Agent & AI configuration
-.agent/
-.claude/
-
-# Package manager files
-package-lock.json
