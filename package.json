@@ -1,6 +1,6 @@
 {
 	"name": "smartwrite-publisher",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Automatizador de publicações para Substack diretamente do Obsidian.",
 	"main": "main.js",
 	"type": "module",
@@ -11,7 +11,7 @@
 		"lint": "eslint ."
 	},
 	"keywords": [],
-	"license": "0-BSD",
+	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^16.11.6",
 		"esbuild": "0.25.5",
