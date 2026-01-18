@@ -1,5 +1,12 @@
 # Changelog: SmartWrite Publisher
 
+## [0.1.4] - 2026-01-18
+
+### Fixo
+
+- Melhoria no diagnóstico do Test Connection (exibição de erro HTTP).
+- Ajuste na lógica de autenticação via cookies.
+
 ## [0.1.3] - 2026-01-18
 
 ### Otimizado

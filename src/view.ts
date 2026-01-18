@@ -126,19 +126,25 @@ export class PublisherView extends ItemView {
 				method: "GET",
 				headers: {
 					"Cookie": `substack.sid=${this.plugin.settings.cookies}`
-				}
+				},
+				throw: false // Impede que o Obsidian jogue um erro genérico
 			});
 
 			if (response.status === 200 && response.json.id) {
 				this.isConnected = true;
-				new Notice(`Conectado como: ${response.json.name || response.json.email}`);
+				new Notice(`Sucesso! Conectado como: ${response.json.name || response.json.email}`);
 			} else {
 				this.isConnected = false;
-				new Notice("Falha na conexão. Cookies inválidos ou expirados.");
+				const errorMsg = response.status === 403 ? "Acesso Proibido (403). Verifique se o cookie expirou." : 
+								 response.status === 401 ? "Não autorizado (401). Cookie inválido." : 
+								 `Erro ${response.status}. Verifique seus dados.`;
+				new Notice(errorMsg);
+				console.error("Substack Auth Fail:", response);
 			}
 		} catch (error) {
 			this.isConnected = false;
-			new Notice("Erro ao conectar ao Substack. Verifique sua rede e cookies.");
+			new Notice("Erro de Rede: Não foi possível alcançar o Substack.");
+			console.error("Erro ao testar conexão:", error);
 		}
 		
 		if (this.connectionDotEl && this.connectionTextEl) {
