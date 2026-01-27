@@ -1,5 +1,13 @@
 # Changelog: SmartWrite Publisher
 
+## [0.2.5] - 2026-01-27
+
+### Adicionado
+
+- **Extração via Archive**: Novo fallback que obtém o ID da publicação a partir do feed de posts recentes (`/api/v1/archive`).
+- **Parsing de App Data**: O plugin agora tenta decodificar o objeto `substack-app-data` injetado pelo Substack no HTML da página inicial, que contém o ID garantido.
+- **Headers Robustos**: Refinamento nos cabeçalhos `Origin` e `Referer` para reduzir erros 403 em endpoints globais.
+
 ## [0.2.4] - 2026-01-27
 
 ### Adicionado
@@ -68,7 +76,7 @@
   - `substack.ts` - Wrapper da API Substack
   - `converter.ts` - Conversão de formato
 - **TestConnection**: Agora usa a biblioteca substack-api em vez de chamadas HTTP diretas.
-- **Versão bumped**Marcos\*\*: v0.2.0 → v0.2.4 (atual) funcionalidade completa).
+- **Versão bumped**: 0.1.8 → 0.2.0 (nova funcionalidade completa).
 
 ### Corrigido
 
