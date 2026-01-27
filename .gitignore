@@ -1,0 +1,12 @@
+node_modules
+*.js
+!esbuild.config.mjs
+!version-bump.mjs
+main.js
+styles.css
+.DS_Store
+.obsidian
+dist
+build
+node_modules
+*.zip

@@ -1,0 +1,10 @@
+{
+	"id": "smartwrite-publisher",
+	"name": "SmartWrite Publisher",
+	"version": "0.1.1",
+	"minAppVersion": "0.15.0",
+	"description": "Automatizador de publicações para Substack diretamente do Obsidian.",
+	"author": "Zander CP",
+	"authorUrl": "https://github.com/zandercpzed/smartwrite-publisher",
+	"isDesktopOnly": true
+}
