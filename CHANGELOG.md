@@ -1,5 +1,16 @@
 # Changelog: SmartWrite Publisher
 
+## [0.2.3] - 2026-01-27
+
+### Adicionado
+
+- **Captura Automática**: O plugin agora tenta validar a conexão e capturar o ID da publicação automaticamente ao preencher a URL ou o Cookie nas configurações.
+- **Fallback HTML**: Adicionada extração do `publication_id` via parsing do HTML da página inicial caso a API JSON falhe.
+
+### Corrigido
+
+- **Identificação de Publicação**: Resolvido problema onde publicações com metadados incompletos via API não retornavam o ID interno.
+
 ## [0.2.2] - 2026-01-27
 
 ### Adicionado
