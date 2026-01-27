@@ -1,5 +1,11 @@
 # Changelog: SmartWrite Publisher
 
+## [0.2.6] - 2026-01-27
+
+### Corrigido
+
+- **Erro de Bylines (400)**: Removido o campo `draft_bylines` do payload de criação de draft, que estava causando erro de "Invalid value". O Substack agora assume o autor autenticado por padrão.
+
 ## [0.2.5] - 2026-01-27
 
 ### Adicionado
