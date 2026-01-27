@@ -1,5 +1,16 @@
 # Changelog: SmartWrite Publisher
 
+## [0.2.2] - 2026-01-27
+
+### Adicionado
+
+- **Diagnóstico Profundo**: Adicionado log de chaves JSON para facilitar a identificação de mudanças na API do Substack.
+- **Forçar Rascunho**: Por segurança, nesta fase de testes, todas as publicações são criadas como rascunho (Draft) por padrão.
+
+### Corrigido
+
+- **ID de Publicação**: Refinada a extração do ID da publicação para suportar respostas aninhadas e diferentes formatos de payload da API.
+
 ## [0.2.1] - 2026-01-27
 
 ### Adicionado

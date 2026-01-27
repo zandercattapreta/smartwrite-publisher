@@ -29,7 +29,7 @@ Visão geral das versões planejadas e seu progresso.
 - [ ] Schedule (Planejado para v0.2.2)
 - [x] Feedback visual de sucesso/erro
 
-**Marcos**: v0.2.0 → v0.2.1 (atual)
+**Marcos**: v0.2.0 → v0.2.2 (atual)
 
 **Próximos passos**:
 
