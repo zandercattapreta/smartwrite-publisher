@@ -1,5 +1,16 @@
 # Changelog: SmartWrite Publisher
 
+## [0.2.4] - 2026-01-27
+
+### Adicionado
+
+- **Botão Limpar Log**: Adicionado botão "Limpar" na sidebar para facilitar o debug em tempo real.
+- **Diagnóstico RAW**: O plugin agora loga um "RAW Snippet" dos primeiros 300 caracteres do JSON de ID para inspeção manual.
+
+### Corrigido
+
+- **Regex de ID**: Adicionados mais padrões de captura de ID para diferentes estruturas de metadados do Substack.
+
 ## [0.2.3] - 2026-01-27
 
 ### Adicionado
@@ -57,7 +68,7 @@
   - `substack.ts` - Wrapper da API Substack
   - `converter.ts` - Conversão de formato
 - **TestConnection**: Agora usa a biblioteca substack-api em vez de chamadas HTTP diretas.
-- **Versão bumped**: 0.1.8 → 0.2.0 (nova funcionalidade completa).
+- **Versão bumped**Marcos\*\*: v0.2.0 → v0.2.4 (atual) funcionalidade completa).
 
 ### Corrigido
 
