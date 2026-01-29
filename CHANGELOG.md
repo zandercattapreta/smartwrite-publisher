@@ -1,5 +1,27 @@
 # Changelog: SmartWrite Publisher
 
+## [0.3.3] - 2026-01-29 (Hotfix - Parser Bug Fixes)
+
+### 🐛 Fixo
+
+- **Tiptap JSON Parser Bugs**: Corrigidos bugs causando posts vazios
+  - **Problema**: `parseInlineMarkdown()` podia retornar estruturas inválidas
+  - **Impacto**: Posts no Substack saindo sem conteúdo
+  - **Solução**:
+    - Type safety: Sempre retorna `Array<TiptapText>`
+    - Validação: Texto vazio retorna `[{ type: 'text', text: '' }]`
+    - Garantia: Documento nunca fica vazio
+    - Fixed regex ambiguidade entre italic e bold
+    - Added validation antes de criar nodes
+
+### ✅ Status
+- ✅ Build: SUCCESS (26KB)
+- ✅ Deployed: Obsidian Test Vault
+- ✅ TypeScript: All errors resolved
+- 🧪 Testing: Posts should now render with content
+
+---
+
 ## [0.3.2] - 2026-01-29 (Hotfix - Tiptap JSON Validation)
 
 ### 🐛 Fixo

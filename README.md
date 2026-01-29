@@ -39,6 +39,7 @@ Este projeto está sendo desenvolvido em fases:
 
 | Versão | Data | Status | Descrição |
 |--------|------|--------|-----------|
+| 0.3.3 | 29/01/2026 | ✅ Estável | Parser bug fixes, correção de posts vazios |
 | 0.3.2 | 29/01/2026 | ✅ Estável | Tiptap JSON implementation, correção de validação de tipos |
 | 0.3.1 | 29/01/2026 | ✅ Estável | Hotfix na extração de título (H1 vs H2+) |
 | 0.3.0 | 29/01/2026 | ✅ Estável | Arquitetura modular, correção de bugs estruturais |

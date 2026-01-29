@@ -1,6 +1,21 @@
 {
   "releases": [
     {
+      "version": "0.3.3",
+      "date": "2026-01-29T15:06:00Z",
+      "type": "hotfix",
+      "description": "Parser Bug Fixes - Tiptap JSON Content Validation",
+      "changes": [
+        "Fixed parseInlineMarkdown() returning invalid structures",
+        "Fixed posts rendering empty (zero content validation)",
+        "Added guaranteed non-empty paragraph fallback",
+        "Type safety: Always returns Array<TiptapText>",
+        "Fixed italic vs bold regex ambiguity",
+        "Added comprehensive validation before node creation"
+      ],
+      "method": "automated"
+    },
+    {
       "version": "0.3.2",
       "date": "2026-01-29T14:52:00Z",
       "type": "hotfix",
@@ -37,9 +52,9 @@
       "method": "manual"
     }
   ],
-  "lastRelease": "0.3.2",
-  "lastReleaseDate": "2026-01-29T15:00:00Z",
-  "nextTarget": "0.3.3",
+  "lastRelease": "0.3.3",
+  "lastReleaseDate": "2026-01-29T15:06:00Z",
+  "nextTarget": "0.3.4",
   "releaseCycle": "on-demand",
   "automationStatus": "ready",
   "automationAdded": "2026-01-29T15:00:00Z",
