@@ -431,7 +431,7 @@ export class SubstackService {
 				draft_subtitle: options.subtitle || '',
 				draft_body: options.bodyHtml,
 				type: 'newsletter',
-				audience: 'everyone'
+				draft_bylines: []
 			};
 
 			const altResponse = await requestUrl({
