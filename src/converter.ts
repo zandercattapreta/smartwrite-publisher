@@ -48,14 +48,15 @@ export class MarkdownConverter {
 		// Extrai frontmatter se existir
 		const { frontmatter, content } = this.extractFrontmatter(markdown);
 
-		// Converte o corpo para Tiptap JSON
-		const tiptapJson = this.markdownToTiptapJson(content);
+		// MUDANÇA: Enviar MARKDOWN PURO em vez de Tiptap JSON
+		// Substack pode processar markdown melhor que nosso parser
+		const plainMarkdown = this.convertToPlainMarkdown(content);
 
 		// Determina título (frontmatter > primeiro H1 > fallback)
 		let title = frontmatter.title || this.extractFirstHeading(content) || fallbackTitle;
 
 		return {
-			html: tiptapJson, // Agora é Tiptap JSON, não HTML
+			html: plainMarkdown, // Markdown puro (texto plano)
 			title,
 			subtitle: frontmatter.subtitle,
 			tags: frontmatter.tags || []
@@ -116,7 +117,18 @@ export class MarkdownConverter {
 	}
 
 	/**
+	 * Converte para Markdown puro (texto plano)
+	 * Remove H1 (usado como título) e retorna resto como-é
+	 */
+	private convertToPlainMarkdown(markdown: string): string {
+		// Remove o primeiro H1 se existir (será usado como título)
+		const body = markdown.replace(/^# +[^\n]*\n?/, '');
+		return body.trim();
+	}
+
+	/**
 	 * Converte Markdown para Tiptap JSON (formato nativo do Substack)
+	 * DEPRECATED: Tiptap JSON não está funcionando como esperado
 	 */
 	private markdownToTiptapJson(markdown: string): TiptapDocument {
 		// Remove o primeiro H1 se existir (será usado como título)
