@@ -1,11 +1,32 @@
 /**
- * Conversor de Markdown (Obsidian) para HTML (Substack)
+ * Conversor de Markdown (Obsidian) para Tiptap JSON (Substack)
  *
- * Transforma a sintaxe do Obsidian em HTML compatível com o Substack
+ * Transforma a sintaxe do Obsidian em Tiptap JSON compatível com o Substack
  */
 
+// Tipos para Tiptap JSON
+interface TiptapNode {
+	type: string;
+	attrs?: Record<string, any>;
+	content?: Array<TiptapNode | TiptapText>;
+	marks?: Array<{ type: string }>;
+	text?: string;
+}
+
+interface TiptapText {
+	type: 'text';
+	text: string;
+	marks?: Array<{ type: string }>;
+}
+
+interface TiptapDocument {
+	type: 'doc';
+	attrs: { schemaVersion: 'v1' };
+	content: TiptapNode[];
+}
+
 export interface ConversionResult {
-	html: string;
+	html: TiptapDocument | string; // Tiptap JSON ou fallback HTML
 	title: string;
 	subtitle?: string;
 	tags: string[];
@@ -21,20 +42,20 @@ export interface FrontmatterData {
 export class MarkdownConverter {
 
 	/**
-	 * Converte conteúdo Markdown completo para HTML
+	 * Converte conteúdo Markdown completo para Tiptap JSON (formato Substack)
 	 */
 	convert(markdown: string, fallbackTitle: string = 'Sem título'): ConversionResult {
 		// Extrai frontmatter se existir
 		const { frontmatter, content } = this.extractFrontmatter(markdown);
 
-		// Converte o corpo para HTML
-		const html = this.markdownToHtml(content);
+		// Converte o corpo para Tiptap JSON
+		const tiptapJson = this.markdownToTiptapJson(content);
 
 		// Determina título (frontmatter > primeiro H1 > fallback)
 		let title = frontmatter.title || this.extractFirstHeading(content) || fallbackTitle;
 
 		return {
-			html,
+			html: tiptapJson, // Agora é Tiptap JSON, não HTML
 			title,
 			subtitle: frontmatter.subtitle,
 			tags: frontmatter.tags || []
@@ -92,6 +113,144 @@ export class MarkdownConverter {
 	private extractFirstHeading(markdown: string): string | null {
 		const h1Match = markdown.match(/^#\s+(.+)$/m);
 		return h1Match && h1Match[1] ? h1Match[1].trim() : null;
+	}
+
+	/**
+	 * Converte Markdown para Tiptap JSON (formato nativo do Substack)
+	 */
+	private markdownToTiptapJson(markdown: string): TiptapDocument {
+		// Remove o primeiro H1 se existir (será usado como título)
+		const body = markdown.replace(/^# +[^\n]*\n?/, '');
+
+		const nodes: TiptapNode[] = [];
+		const lines = body.split('\n');
+		let i = 0;
+
+		while (i < lines.length) {
+			const line = lines[i] || '';
+
+			// Pula linhas vazias (mas mantém uma para separação)
+			if (!line.trim()) {
+				i++;
+				continue;
+			}
+
+			// Headings (H2-H6)
+			const headingMatch = line.match(/^(#{2,6})\s+(.+)$/);
+			if (headingMatch) {
+				const level = headingMatch[1]?.length || 2;
+				const text = headingMatch[2] || '';
+				nodes.push({
+					type: 'heading',
+					attrs: { level },
+					content: [{ type: 'text', text }]
+				});
+				i++;
+				continue;
+			}
+
+			// Linha horizontal
+			if (line && /^[-*_]{3,}$/.test(line)) {
+				nodes.push({ type: 'horizontalRule' });
+				i++;
+				continue;
+			}
+
+			// Parágrafo normal (com formatação inline)
+			if (line.trim()) {
+				const paragraphContent = this.parseInlineMarkdown(line.trim());
+				nodes.push({
+					type: 'paragraph',
+					content: paragraphContent
+				});
+			}
+
+			i++;
+		}
+
+		return {
+			type: 'doc',
+			attrs: { schemaVersion: 'v1' },
+			content: nodes
+		};
+	}
+
+	/**
+	 * Parse de formatação inline (bold, italic, code, etc)
+	 */
+	private parseInlineMarkdown(text: string): Array<TiptapText | TiptapNode> {
+		const result: Array<TiptapText | TiptapNode> = [];
+		let i = 0;
+
+		while (i < text.length) {
+			// Bold: **text** ou __text__
+			const boldMatch = text.substring(i).match(/^\*\*(.+?)\*\*|^__(.+?)__/);
+			if (boldMatch) {
+				const boldText = boldMatch[1] || boldMatch[2];
+				result.push({
+					type: 'text',
+					text: boldText,
+					marks: [{ type: 'bold' }]
+				});
+				i += boldMatch[0].length;
+				continue;
+			}
+
+			// Italic: _text_ ou *text*
+			const italicMatch = text.substring(i).match(/^_(.+?)_|^\*(.+?)\*/);
+			if (italicMatch) {
+				const italicText = italicMatch[1] || italicMatch[2];
+				result.push({
+					type: 'text',
+					text: italicText,
+					marks: [{ type: 'italic' }]
+				});
+				i += italicMatch[0].length;
+				continue;
+			}
+
+			// Code: `text`
+			const codeMatch = text.substring(i).match(/^`(.+?)`/);
+			if (codeMatch) {
+				result.push({
+					type: 'text',
+					text: codeMatch[1],
+					marks: [{ type: 'code' }]
+				});
+				i += codeMatch[0].length;
+				continue;
+			}
+
+			// Strikethrough: ~~text~~
+			const strikeMatch = text.substring(i).match(/^~~(.+?)~~/);
+			if (strikeMatch) {
+				result.push({
+					type: 'text',
+					text: strikeMatch[1],
+					marks: [{ type: 'strikethrough' }]
+				});
+				i += strikeMatch[0].length;
+				continue;
+			}
+
+			// Texto normal
+			const nextFormatIndex = text.substring(i).search(/[\*_`~\[]/);
+			if (nextFormatIndex === -1) {
+				result.push({
+					type: 'text',
+					text: text.substring(i)
+				});
+				break;
+			} else {
+				result.push({
+					type: 'text',
+					text: text.substring(i, i + nextFormatIndex)
+				});
+				i += nextFormatIndex;
+			}
+		}
+
+		return result;
 	}
 
 	/**

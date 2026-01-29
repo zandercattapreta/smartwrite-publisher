@@ -290,7 +290,10 @@ export class PublisherView extends ItemView {
 			// Converte para HTML
 			const converted = this.converter.convert(content, this.activeFile.basename);
 
-			this.plugin.logger.log(`Convertido: ${converted.title} (${converted.html.length} chars HTML)`);
+			const htmlLength = typeof converted.html === 'string'
+				? converted.html.length
+				: JSON.stringify(converted.html).length;
+			this.plugin.logger.log(`Convertido: ${converted.title} (${htmlLength} chars)`);
 
 			// Publica no Substack
 			// FORÇADO: Sempre rascunho (isDraft: true) durante fase de testes

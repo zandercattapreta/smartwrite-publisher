@@ -19,7 +19,7 @@ export interface SubstackUserInfo {
 export interface PublishOptions {
 	title: string;
 	subtitle?: string;
-	bodyHtml: string;
+	bodyHtml: any; // Tiptap JSON ou string (para compatibilidade)
 	isDraft?: boolean;
 	scheduledAt?: Date;
 }
@@ -49,11 +49,12 @@ export interface DraftResponse {
 
 /**
  * Payload para criar um draft
+ * Usa Tiptap JSON para o corpo (formato nativo do Substack)
  */
 export interface DraftPayload {
 	draft_title: string;
 	draft_subtitle?: string;
-	draft_body: string;
+	bodyJson: any; // Tiptap JSON structure
 	type: string;
 	draft_bylines: Array<{ user_id: number }>;
 	[key: string]: any;

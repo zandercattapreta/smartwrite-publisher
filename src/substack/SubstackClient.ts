@@ -42,6 +42,11 @@ export class SubstackClient {
 		try {
 			this.logger.log(`[${method}] ${url}`, 'INFO');
 
+			// Log do payload (para debugging)
+			if (body) {
+				this.logger.log(`Payload: ${JSON.stringify(body)}`, 'INFO');
+			}
+
 			const response = await requestUrl({
 				url,
 				method,
@@ -68,6 +73,11 @@ export class SubstackClient {
 			};
 
 			this.logger.log(`[${method}] ${url} → ${response.status}`, 'INFO');
+
+			// Log da response (para debugging)
+			if (response.status >= 400 || method === 'POST') {
+				this.logger.log(`Response: ${response.text.substring(0, 500)}`, 'INFO');
+			}
 
 			return httpResponse;
 		} catch (error: any) {

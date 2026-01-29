@@ -25,15 +25,22 @@ Este projeto está sendo desenvolvido em fases:
 
 - **v0.1.0**: ✅ Fundação, Sidebar e Conectividade.
 - **v0.2.0**: ✅ Publicação de Nota Ativa (Phase 2 - Hotfixes v0.2.6.6-v0.2.6.10).
-- **v0.3.0**: ✅ **Arquitetura Refatorada** (29 jan 2026) - Refactoring completo com separação de responsabilidades.
-  - Modular architecture com SubstackClient, PayloadBuilder, ErrorHandler, IdStrategy
-  - Fixed: Cookie headers, Content-Type, Duplicate endpoints
-  - Ready para publicação em lote (Phase 3 feature-ready)
+- **v0.3.x**: ✅ **Tiptap JSON Format** (29 jan 2026)
+  - v0.3.0: Arquitetura Refatorada com separação de responsabilidades
+    - Modular architecture com SubstackClient, PayloadBuilder, ErrorHandler, IdStrategy
+    - Fixed: Cookie headers, Content-Type, Duplicate endpoints
+  - v0.3.2: Tiptap JSON Implementation (Markdown → Tiptap JSON converter)
+    - Fixed: HTML literal rendering issue
+    - Converted: `draft_body` (string) → `bodyJson` (Tiptap JSON)
+    - Added: Type-safe validation for both string (legacy) and Tiptap formats
+    - Ready para publicação em lote (Phase 3 feature-ready)
 
 ### Histórico de Versões
 
 | Versão | Data | Status | Descrição |
 |--------|------|--------|-----------|
+| 0.3.2 | 29/01/2026 | ✅ Estável | Tiptap JSON implementation, correção de validação de tipos |
+| 0.3.1 | 29/01/2026 | ✅ Estável | Hotfix na extração de título (H1 vs H2+) |
 | 0.3.0 | 29/01/2026 | ✅ Estável | Arquitetura modular, correção de bugs estruturais |
 | 0.2.6.10 | 29/01/2026 | 🔄 Hotfix | Última tentativa de hotfix antes refactoring |
 | 0.2.6.6-0.2.6.9 | 29/01/2026 | ❌ Ineficaz | Série de hotfixes que revelaram problemas arquiteturais |

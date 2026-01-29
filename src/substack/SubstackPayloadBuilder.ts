@@ -27,7 +27,7 @@ export class PayloadBuilder {
 		// Construir payload base (sempre obrigatório)
 		const payload: DraftPayload = {
 			draft_title: options.title.trim(),
-			draft_body: options.bodyHtml,
+			bodyJson: options.bodyHtml, // Tiptap JSON format
 			type: 'newsletter',
 			draft_bylines: []
 		};
@@ -64,12 +64,34 @@ export class PayloadBuilder {
 			};
 		}
 
-		if (!options.bodyHtml || options.bodyHtml.trim().length === 0) {
+		// Validar bodyHtml - pode ser string (legado) ou TiptapDocument
+		if (!options.bodyHtml) {
 			return {
 				valid: false,
 				error: 'Corpo do texto é obrigatório',
 				field: 'bodyHtml'
 			};
+		}
+
+		// Se é string, verificar se não está vazio
+		if (typeof options.bodyHtml === 'string' && options.bodyHtml.trim().length === 0) {
+			return {
+				valid: false,
+				error: 'Corpo do texto é obrigatório',
+				field: 'bodyHtml'
+			};
+		}
+
+		// Se é objeto (TiptapDocument), verificar estrutura básica
+		if (typeof options.bodyHtml === 'object' && !Array.isArray(options.bodyHtml)) {
+			const doc = options.bodyHtml as any;
+			if (doc.type !== 'doc' || !doc.attrs || !Array.isArray(doc.content)) {
+				return {
+					valid: false,
+					error: 'Formato Tiptap JSON inválido',
+					field: 'bodyHtml'
+				};
+			}
 		}
 
 		if (options.title.length > 500) {

@@ -1,5 +1,25 @@
 # Changelog: SmartWrite Publisher
 
+## [0.3.2] - 2026-01-29 (Hotfix - Tiptap JSON Validation)
+
+### 🐛 Fixo
+
+- **Tiptap JSON Type Validation**: Corrigido erro `bodyHtml.trim() is not a function`
+  - **Problema**: Validador tentava chamar `.trim()` em `bodyHtml` que agora é um objeto TiptapDocument
+  - **Causa**: `bodyHtml` mudou de `string` para `TiptapDocument | string` na conversão para Tiptap JSON
+  - **Solução**: Adicionar type checking antes de validação:
+    - Se é string: valida com `.trim().length`
+    - Se é objeto (TiptapDocument): valida estrutura (type, attrs, content)
+  - **Impacto**: Validation agora suporta ambos formatos (string legado e Tiptap JSON novo)
+
+### ✅ Status
+- ✅ Build: SUCCESS (26KB)
+- ✅ Deployed: Obsidian Test Vault
+- ✅ TypeScript: All errors resolved
+- 🧪 Testing: Ready for draft publishing validation
+
+---
+
 ## [0.3.1] - 2026-01-29 (Hotfix - Title Extraction)
 
 ### 🐛 Fixo
