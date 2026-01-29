@@ -1,5 +1,23 @@
 # Changelog: SmartWrite Publisher
 
+## [0.3.1] - 2026-01-29 (Hotfix - Title Extraction)
+
+### 🐛 Fixo
+
+- **Markdown Title Extraction**: Corrigido bug na hierarquia de headings
+  - **Problema**: Regex `/^#\s+.+\n?/` removia qualquer heading (H1, H2, H3, etc)
+  - **Resultado**: Arquivo com H1 + H2 perdia o H2 do corpo (aparecia vazio)
+  - **Exemplo**: "The Interviewer" draft tinha título correto mas body começava vazio
+  - **Solução**: Usar `/^# +[^\n]*\n?/` (exatamente um # = H1 apenas)
+  - **Impacto**: Agora respeitamos hierarquia H1 > H2 > H3 > ...
+
+### ✅ Status
+- ✅ Build: SUCCESS (25KB)
+- ✅ Deployed: Obsidian
+- 🧪 Testing: Ready for 13_The-Interviewer.md validation
+
+---
+
 ## [0.3.0] - 2026-01-29 (Complete Architecture Refactoring)
 
 ### 🏗️ Major Changes (Breaking Architecture Overhaul)
