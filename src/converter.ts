@@ -129,7 +129,7 @@ export class MarkdownConverter {
 		while (i < lines.length) {
 			const line = lines[i] || '';
 
-			// Pula linhas vazias (mas mantém uma para separação)
+			// Pula linhas vazias
 			if (!line.trim()) {
 				i++;
 				continue;
@@ -139,12 +139,15 @@ export class MarkdownConverter {
 			const headingMatch = line.match(/^(#{2,6})\s+(.+)$/);
 			if (headingMatch) {
 				const level = headingMatch[1]?.length || 2;
-				const text = headingMatch[2] || '';
-				nodes.push({
-					type: 'heading',
-					attrs: { level },
-					content: [{ type: 'text', text }]
-				});
+				const text = (headingMatch[2] || '').trim();
+				if (text) {
+					const headingContent = this.parseInlineMarkdown(text);
+					nodes.push({
+						type: 'heading',
+						attrs: { level },
+						content: headingContent
+					});
+				}
 				i++;
 				continue;
 			}
@@ -159,13 +162,24 @@ export class MarkdownConverter {
 			// Parágrafo normal (com formatação inline)
 			if (line.trim()) {
 				const paragraphContent = this.parseInlineMarkdown(line.trim());
-				nodes.push({
-					type: 'paragraph',
-					content: paragraphContent
-				});
+				// Só adiciona parágrafo se houver conteúdo
+				if (paragraphContent && paragraphContent.length > 0) {
+					nodes.push({
+						type: 'paragraph',
+						content: paragraphContent
+					});
+				}
 			}
 
 			i++;
+		}
+
+		// Se nenhum node foi criado, cria parágrafo vazio
+		if (nodes.length === 0) {
+			nodes.push({
+				type: 'paragraph',
+				content: [{ type: 'text', text: '' }]
+			});
 		}
 
 		return {
@@ -178,33 +192,46 @@ export class MarkdownConverter {
 	/**
 	 * Parse de formatação inline (bold, italic, code, etc)
 	 */
-	private parseInlineMarkdown(text: string): Array<TiptapText | TiptapNode> {
-		const result: Array<TiptapText | TiptapNode> = [];
+	private parseInlineMarkdown(text: string): Array<TiptapText> {
+		const result: Array<TiptapText> = [];
 		let i = 0;
 
+		// Se texto vazio, retorna array vazio (parágrafo pode ser vazio)
+		if (!text || !text.trim()) {
+			return [{
+				type: 'text',
+				text: text || ''
+			}];
+		}
+
 		while (i < text.length) {
-			// Bold: **text** ou __text__
+			// Bold: **text** ou __text__ (ANTES de italic para evitar conflito)
 			const boldMatch = text.substring(i).match(/^\*\*(.+?)\*\*|^__(.+?)__/);
 			if (boldMatch) {
-				const boldText = boldMatch[1] || boldMatch[2];
-				result.push({
-					type: 'text',
-					text: boldText,
-					marks: [{ type: 'bold' }]
-				});
+				const boldText = boldMatch[1] || boldMatch[2] || '';
+				if (boldText) {
+					result.push({
+						type: 'text',
+						text: boldText,
+						marks: [{ type: 'bold' }]
+					});
+				}
 				i += boldMatch[0].length;
 				continue;
 			}
 
-			// Italic: _text_ ou *text*
-			const italicMatch = text.substring(i).match(/^_(.+?)_|^\*(.+?)\*/);
+			// Italic: _text_ (EXATO: underscore) ou *text* (EXATO: single asterisk, sem bold)
+			// Nota: *text* será italic apenas se não for **text**
+			const italicMatch = text.substring(i).match(/^_(.+?)_/);
 			if (italicMatch) {
-				const italicText = italicMatch[1] || italicMatch[2];
-				result.push({
-					type: 'text',
-					text: italicText,
-					marks: [{ type: 'italic' }]
-				});
+				const italicText = italicMatch[1] || '';
+				if (italicText) {
+					result.push({
+						type: 'text',
+						text: italicText,
+						marks: [{ type: 'italic' }]
+					});
+				}
 				i += italicMatch[0].length;
 				continue;
 			}
@@ -212,11 +239,14 @@ export class MarkdownConverter {
 			// Code: `text`
 			const codeMatch = text.substring(i).match(/^`(.+?)`/);
 			if (codeMatch) {
-				result.push({
-					type: 'text',
-					text: codeMatch[1],
-					marks: [{ type: 'code' }]
-				});
+				const codeText = codeMatch[1] || '';
+				if (codeText) {
+					result.push({
+						type: 'text',
+						text: codeText,
+						marks: [{ type: 'code' }]
+					});
+				}
 				i += codeMatch[0].length;
 				continue;
 			}
@@ -224,30 +254,52 @@ export class MarkdownConverter {
 			// Strikethrough: ~~text~~
 			const strikeMatch = text.substring(i).match(/^~~(.+?)~~/);
 			if (strikeMatch) {
-				result.push({
-					type: 'text',
-					text: strikeMatch[1],
-					marks: [{ type: 'strikethrough' }]
-				});
+				const strikeText = strikeMatch[1] || '';
+				if (strikeText) {
+					result.push({
+						type: 'text',
+						text: strikeText,
+						marks: [{ type: 'strikethrough' }]
+					});
+				}
 				i += strikeMatch[0].length;
 				continue;
 			}
 
-			// Texto normal
-			const nextFormatIndex = text.substring(i).search(/[\*_`~\[]/);
+			// Texto normal (tudo que não é formatação)
+			const nextFormatIndex = text.substring(i).search(/[\*_`~]/);
 			if (nextFormatIndex === -1) {
-				result.push({
-					type: 'text',
-					text: text.substring(i)
-				});
+				// Resto do texto
+				const plainText = text.substring(i);
+				if (plainText) {
+					result.push({
+						type: 'text',
+						text: plainText
+					});
+				}
 				break;
-			} else {
-				result.push({
-					type: 'text',
-					text: text.substring(i, i + nextFormatIndex)
-				});
+			} else if (nextFormatIndex > 0) {
+				// Texto até o próximo formato
+				const plainText = text.substring(i, i + nextFormatIndex);
+				if (plainText) {
+					result.push({
+						type: 'text',
+						text: plainText
+					});
+				}
 				i += nextFormatIndex;
+			} else {
+				// Se está no início de um format (não deveria chegar aqui), avança 1 char
+				i++;
 			}
+		}
+
+		// Se result está vazio, retorna texto vazio
+		if (result.length === 0) {
+			return [{
+				type: 'text',
+				text: text || ''
+			}];
 		}
 
 		return result;
