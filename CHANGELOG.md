@@ -1,5 +1,19 @@
 # Changelog: SmartWrite Publisher
 
+## [0.2.6.2] - 2026-01-29 (Hotfix II)
+
+### Fixo
+
+- **API Endpoint Fix**: Corrigido endpoint 404 para criação de drafts
+  - Problema: Endpoint `/api/v1/posts` não existe (404)
+  - Problema 2: Código estava pulando `/api/v1/drafts` quando user_id era 0
+  - Solução 1: **Sempre** tenta `/api/v1/drafts` primeiro (removido conditional)
+  - Solução 2: Adicionado `publication_id` no payload (estava faltando)
+  - Solução 3: Fallback para `/api/v1/publications/{pubId}/drafts` em vez de `/api/v1/posts`
+  - Resultado: Draft creation agora funciona com ou sem user_id
+
+---
+
 ## [0.2.6.1] - 2026-01-29 (Hotfix)
 
 ### Fixo
