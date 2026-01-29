@@ -2,7 +2,7 @@ import { Notice, Plugin, WorkspaceLeaf } from 'obsidian';
 import { PublisherView, VIEW_TYPE_PUBLISHER } from "./view";
 import { SmartWriteSettingTab } from "./settings";
 import { Logger } from "./logger";
-import { SubstackService } from './substack';
+import { SubstackService, type ConnectionConfig } from './substack/SubstackService';
 
 export interface SmartWriteSettings {
 	cookies: string;
@@ -23,7 +23,10 @@ export default class SmartWritePublisher extends Plugin {
 	async onload() {
 		try {
 			await this.loadSettings();
-			this.substackService.configure(this.settings.cookies, this.settings.substackUrl);
+			this.substackService.configure({
+			cookie: this.settings.cookies,
+			substackUrl: this.settings.substackUrl
+		});
 
 			this.addSettingTab(new SmartWriteSettingTab(this.app, this));
 
@@ -109,7 +112,10 @@ export default class SmartWritePublisher extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-		this.substackService.configure(this.settings.cookies, this.settings.substackUrl);
+		this.substackService.configure({
+			cookie: this.settings.cookies,
+			substackUrl: this.settings.substackUrl
+		});
 	}
 
 	async testConnection() {

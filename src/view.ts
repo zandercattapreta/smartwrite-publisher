@@ -48,10 +48,10 @@ export class PublisherView extends ItemView {
 	 */
 	configureService() {
 		if (this.plugin.settings.cookies && this.plugin.settings.substackUrl) {
-			this.substackService.configure(
-				this.plugin.settings.cookies,
-				this.plugin.settings.substackUrl
-			);
+			this.substackService.configure({
+				cookie: this.plugin.settings.cookies,
+				substackUrl: this.plugin.settings.substackUrl
+			});
 		}
 	}
 
