@@ -101,7 +101,9 @@ export class MarkdownConverter {
 		let html = markdown;
 
 		// Remove o primeiro H1 se existir (será usado como título)
-		html = html.replace(/^#\s+.+\n?/, '');
+		// IMPORTANTE: Usar ^# (exatamente um hash) não ^#+ (um ou mais hashes)
+		// Caso contrário, remove H2, H3, etc também!
+		html = html.replace(/^# +[^\n]*\n?/, '');
 
 		// Escapa HTML existente
 		html = this.escapeHtml(html);
