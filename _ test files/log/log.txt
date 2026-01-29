@@ -1,0 +1,197 @@
+===============================================
+Substack API Test Suite
+===============================================
+
+TESTE 1: Validar Autenticação
+==============================
+GET /api/v1/publication
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0HTTP/2 200 
+date: Thu, 29 Jan 2026 11:45:20 GMT
+content-type: application/json; charset=utf-8
+server: cloudflare
+cf-ray: 9c587b981d86125c-GIG
+cf-cache-status: DYNAMIC
+cache-control: no-cache
+etag: W/"3486-n9ZvfiTfh/DidNdUsEe+b+s4xe8"
+set-cookie: ab_experiment_sampled=%22false%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:20 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: ab_testing_id=%2272db839c-44a0-4ff2-a934-4e2417a2e626%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:20 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: AWSALBTG=IvRk7Xw/vMP0RTT8cA3t5/88Trp0gA4ectHrJ4mL2TuQ7ypkq9DaI21BdRv6yypeApShdh1wAXkda5XtlMbiZjkbmdqkoOd1LhTZGpPuVhjO8lrXwPNg+YeyIk8EB2y9qX1jS/lpCHnr+PB8brLUZVgzO2RqzIeiDXV+1FVXmE+W; Expires=Thu, 05 Feb 2026 11:45:20 GMT; Path=/
+set-cookie: AWSALBTGCORS=IvRk7Xw/vMP0RTT8cA3t5/88Trp0gA4ectHrJ4mL2TuQ7ypkq9DaI21BdRv6yypeApShdh1wAXkda5XtlMbiZjkbmdqkoOd1LhTZGpPuVhjO8lrXwPNg+YeyIk8EB2y9qX1jS/lpCHnr+PB8brLUZVgzO2RqzIeiDXV+1FVXmE+W; Expires=Thu, 05 Feb 2026 11:45:20 GMT; Path=/; SameSite=None; Secure
+set-cookie: ajs_anonymous_id=%2252f54c964282f2819c7a4b844771c663%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:20 GMT; SameSite=Strict
+set-cookie: visit_id=%7B%22id%22%3A%22dad3eb13-48ac-42c8-8925-4e4dcb6c7d61%22%2C%22timestamp%22%3A%222026-01-29T11%3A45%3A20.735Z%22%7D; Max-Age=1800; Domain=substack.com; Path=/; Expires=Thu, 29 Jan 2026 12:15:20 GMT; HttpOnly; SameSite=Strict
+set-cookie: connect.sid=s%3A5Ds9Wwg1Jv7wDNPdAjiHUwQO1PfqEGfj.qw37jDKUqiCfnrE3MXCJ3QxF8Fmca6O1xBOTnw76A4I; Domain=substack.com; Path=/; Expires=Wed, 29 Apr 2026 11:45:20 GMT; HttpOnly; Secure
+set-cookie: __cf_bm=tVf0rs0cJnt2fSL0Voq6mcLCUMK.dAYWCZ5JnHyZJPQ-1769687120-1.0.1.1-6g7HBPq6hH.fTL_EkiV_wv0_pSejJz7_w98oozfeVH.Gm7SKDEbL2UFlv3ER_psdwMqdbRcX.dFGnGqCQX.Z6_C5fO59Q3E9vluhN8Z8lgw; path=/; expires=Thu, 29-Jan-26 12:15:20 GMT; domain=.substack.com; HttpOnly; Secure; SameSite=None
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Accept-Encoding
+x-cluster: substack
+x-deploy: dbac8d31d3
+x-powered-by: Express
+x-served-by: Substack
+x-service: web
+alt-svc: h3=":443"; ma=86400
+
+{"subdomain":"thebreachrpg","is_personal_mode":false,"name":"The Breach","custom_domain":null,"logo_url":"https://substackcdn.com/image/fetch/$s_!aSx4!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F731db319-665e-46cb-a4cb-c5b46f9aceb1_1280x1280.png","logo_url_wide":"https://substackcdn.com/image/fetch/$s_!Hvau!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5e855e2-ea81-4de4-a85b-b88f8682f4e4_1344x256.png","cover_photo_url":"https://substack-post-media.s3.amazonaws.com/public/images/acb3eb93-c906-4766-9276-a87c802e52a6_1280x1280.png","copyright":"Zander Catta Preta","email_from_name":"Zander Catta Preta | The Breach","subscribe_content":"{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":1},\"content\":[{\"type\":\"text\",\"text\":\"Why subscribe?\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Subscribe to get full access to the newsletter and \"},{\"type\":\"text\",\"marks\":[{\"type\":\"link\",\"attrs\":{\"href\":\"%%archive_url%%\",\"target\":\"_blank\",\"rel\":\"noopener noreferrer nofollow\",\"class\":null}}],\"text\":\"publication archives\"},{\"type\":\"text\",\"text\":\".\"}]},{\"type\":\"button\",\"attrs\":{\"url\":\"%%checkout_url%%\",\"text\":\"Subscribe now\",\"action\":null,\"class\":null}},{\"type\":\"heading\",\"attrs\":{\"level\":3},\"content\":[{\"type\":\"text\",\"text\":\"Stay up-to-date\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Never miss an update—every new post is sent directly to your email inbox. For a spam-free, ad-free reading experience, plus audio and community features, \"},{\"type\":\"text\",\"marks\":[{\"type\":\"link\",\"attrs\":{\"href\":\"https://substack.com/app/app-store-redirect\",100  5467    0  5467    0     0  11071      0 --:--:-- --:--:-- --:--:-- 11066\"target\":\"_blank\",\"rel\":\"noopener noreferrer nofollow\",\"class\":null}}],\"text\":\"get the Substack app\"},{\"type\":\"text\",\"text\":\".\"}]},{\"type\":\"heading\",\"attrs\":{\"level\":3},\"content\":[{\"type\":\"text\",\"text\":\"Join the crew\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Be part of a community of people who share your interests. Participate in the comments section, or support this work with a subscription.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"em\"}],\"text\":\"To learn more about the tech platform that powers this publication, visit \"},{\"type\":\"text\",\"marks\":[{\"type\":\"link\",\"attrs\":{\"href\":\"https://www.substack.com/\",\"target\":\"_blank\",\"rel\":\"noopener noreferrer nofollow\",\"class\":null}},{\"type\":\"em\"}],\"text\":\"Substack.com\"},{\"type\":\"text\",\"marks\":[{\"type\":\"em\"}],\"text\":\".\"}]}]}","subscribe_footer":"Subscribe to get exclusive updates in your inbox","welcome_email_content":"{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Welcome, and thanks for signing up!\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"You’ll start receiving new posts right here in your inbox. You can also log into the website to read the full archives or access a clean, ad-free reading experience in the Substack app.\"}]},{\"type\":\"horizontal_rule\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Some housekeeping…\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"If you can’t find the newsletter, check your Spam folder or Promotions tab, and move this email to your primary inbox.\"}]},{\"type\":\"button\",\"attrs\":{\"url\":\"https://substack.com/app/app-store-redirect?utm_campaign=app-marketing&utm_content=default-welcome-email&utm_source=thebreachrpg\",\"text\":\"Get more in the Substack app\",\"class\":null}},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"We hope you'll take a few minutes to answer our New Reader Survey and help us make The Breach better!\"}]},{\"type\":\"button\",\"attrs\":{\"url\":\"%%survey_url_prefix%%https://thebreachrpg.substack.com/survey/5825437?token=%%survey_token%%\",\"text\":\"Take Survey\",\"class\":null}},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Thanks again, and please tell a few friends if you feel like it.\"}]}]}","welcome_email_subject":"Welcome to The Breach","unfinished_subscription_email_content":"{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"You're receiving free posts from The Breach.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"To get every post and other paid subscriber benefits, \"},{\"type\":\"text\",\"marks\":[{\"type\":\"strong\"}],\"text\":\"upgrade to a paid subscription\"}]},{\"type\":\"button\",\"attrs\":{\"url\":\"%%checkout_url%%\",\"text\":\"Upgrade subscription\",\"action\":null,\"class\":null}},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"You can \"},{\"type\":\"text\",\"marks\":[{\"type\":\"link\",\"attrs\":{\"href\":\"%%one_click_unsubscribe_url%%\",\"target\":\"_blank\",\"class\":null}}],\"text\":\"unsubscribe in one click\"},{\"type\":\"text\",\"text\":\".\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"We hope you'll take a few minutes to answer our New Reader Survey and help us make The Breach better!\"}]},{\"type\":\"button\",\"attrs\":{\"url\":\"%%survey_url_prefix%%https://thebreachrpg.substack.com/survey/5825437?token=%%survey_token%%\",\"text\":\"Take Survey\",\"class\":null}}]}","unfinished_subscription_email_subject":"You're on the list!","subscription_expiry_email_content":"{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Your subscription to %%publication_name%% has ended and you have lost your paid subscriber benefits.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"To retain paid access to %%publication_name%%, you can click the button below to resubscribe.\"}]},{\"type\":\"button\",\"attrs\":{\"url\":\"%%checkout_url%%\",\"text\":\"Subscribe now\",\"action\":null,\"class\":null}}]}","subscription_expiry_email_subject":"Your subscription has ended","tos_content":null,"privacy_content":null,"disclosures_content":null,"mailing_address":null,"email_disable_message":"Sorry to see you go!","hero_text":"The Breach is an urban horror magazine.","metrics_email_disabled":false,"theme_var_background_pop":"#FF6719","default_coupon":null,"subscription_event_email_disabled":false,"free_signup_event_email_disabled":false,"unsubscription_event_email_disabled":true,"email_disabled_event_email_disabled":true,"post_reaction_email_disabled":null,"post_stats_email_disabled":null,"drip_email_disabled":null,"milestone_email_disabled":null,"comment_report_notice_email_disabled":null,"monthly_stats_email_enabled":true,"comment_event_email_disabled":false,"hide_intro_title":null,"hide_intro_subtitle":null,"community_enabled":true,"moderation_enabled":true,"show_recs_on_homepage":true,"podcast_enabled":false,"podcast_feed_url":null,"public_post_free_signup_preamble":"{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\"}]}","public_post_subscriber_preamble":"{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\"}]}","subscriber_post_subscriber_preamble":"{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\"}]}","email_banner_url":"https://substack-post-media.s3.amazonaws.com/public/images/34ea7bf8-aac6-4dac-983e-b4f5a0084454_1344x256.png","image_thumbnails_always_enabled":false,"publicly_ranked":true,"expose_paywall_content_to_search_engines":true,"podcast_description":null,"podcast_title":null,"podcast_byline":null,"podcast_language":null,"itunes_explicit":false,"show_pub_podcast_tab":false,"podcast_art_url":null,"paid_podcast_episode_art_url":null,"hide_podcast_feed_link":false,"itunes_podcast_primary_category":null,"itunes_podcast_primary_subcategory":null,"itunes_podcast_secondary_category":null,"itunes_podcast_secondary_subcategory":null,"hide_podcast_from_pub_listings":false,"fb_pixel_id":null,"ga_pixel_id":null,"twitter_pixel_id":null,"parsely_pixel_id":null,"chartbeat_domain":null,"bylines_enabled":true,"byline_images_enabled":true,"forward_email_audience":"all_subscribers","media_assets_email_enabled":true,"homepage_type":"newspaper","default_comment_sort":"best_first","requires_confirmation":false,"theme_var_color_links":true,"google_site_verification_token":null,"fb_site_verification_token":null,"google_tag_manager_token":null,"language":"en","paid_subscription_benefits":null,"free_subscription_benefits":null,"founding_subscription_benefits":null,"founding_plan_enabled":true,"founding_plan_amount":null,"founding_plan_minimum":null,"founding_plan_name":null,"post_preview_limit":1000,"invite_only":false,"subscriber_invites":0,"itunes_email":null,"payments_state":"enabled","paywall_free_trial_enabled":true,"link_event_email_enabled":true,"post_reaction_faces_enabled":true,"minimum_group_size":null,"support_email":null,"email_render_elements":{"publication_id":7678831,"public_post_free_signup_postscript":"{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"em\"}],\"text\":\"You are a free subscriber to The Breach. Subscribe and help the author break free from the shackles of daily bills.\"}]},{\"type\":\"button\",\"attrs\":{\"url\":\"%%checkout_url%%\",\"text\":\"Upgrade to paid\",\"action\":null,\"class\":null}}]}","public_post_subscriber_postscript":"{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Subscribe, share, like, and comment. The author thanks you!\"}]},{\"type\":\"paragraph\"},{\"type\":\"button\",\"attrs\":{\"url\":\"%%share_url%%\",\"text\":\"Share\",\"action\":null,\"class\":null}},{\"type\":\"paragraph\"}]}","subscriber_post_subscriber_postscript":"{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Subscribe, share100 13446    0 13446    0     0  27187      0 --:--:-- --:--:-- --:--:-- 27163
+, like, and comment. The author thanks you!\"}]},{\"type\":\"button\",\"attrs\":{\"url\":\"%%share_url%%\",\"text\":\"Share\",\"action\":null,\"class\":null}},{\"type\":\"paragraph\"}]}","email_postscript_for_free_writer":null,"email_preamble_for_free_writer":null,"upcoming_renewal_email":null,"upcoming_renewal_email_subject":null,"free_preview_preamble":null,"founding_post_non_founding_postscript":null,"score_based_upsell":null,"score_based_upsell_subject":null,"first_month_upsell":null,"first_month_upsell_subject":null,"referrals_reward_tier_1_subject":null,"referrals_reward_tier_2_subject":null,"referrals_reward_tier_1":null,"referrals_reward_tier_2":null,"referrals_reward_tier_3":null,"referrals_reward_tier_3_subject":null,"founding_tier_welcome_email_content":null,"founding_tier_welcome_email_subject":null,"imported_welcome_email_content":null,"imported_welcome_email_subject":null,"email_preamble_for_free_writer_html":"<p></p>","email_postscript_for_free_writer_html":"<p></p>","public_post_free_signup_postscript_html":"<p><em>You are a free subscriber to The Breach. Subscribe and help the author break free from the shackles of daily bills.</em></p><p class=\"button-wrapper\" data-attrs=\"{&quot;url&quot;:&quot;https://thebreachrpg.substack.com/subscribe?&quot;,&quot;text&quot;:&quot;Upgrade to paid&quot;,&quot;action&quot;:null,&quot;class&quot;:null}\" data-component-name=\"ButtonCreateButton\"><a class=\"button primary\" href=\"https://thebreachrpg.substack.com/subscribe?\"><span>Upgrade to paid</span></a></p>","founding_post_non_founding_postscript_html":"<p><em>This post is only for %%paid_or_founding_tier_name%% subscribers. To get access, <a href=\"https://thebreachrpg.substack.com/subscribe?plan=founding&\">upgrade your subscription</a>.</em></p><p class=\"button-wrapper\" data-attrs=\"{&quot;url&quot;:&quot;https://thebreachrpg.substack.com/subscribe?plan=founding&&quot;,&quot;text&quot;:&quot;Upgrade to %%paid_or_founding_tier_name%%&quot;,&quot;action&quot;:null,&quot;class&quot;:null}\" data-component-name=\"ButtonCreateButton\"><a class=\"button primary\" href=\"https://thebreachrpg.substack.com/subscribe?plan=founding&\"><span>Upgrade to %%paid_or_founding_tier_name%%</span></a></p>","public_post_subscriber_postscript_html":"<p>Subscribe, share, like, and comment. The author thanks you!</p><p></p><p class=\"button-wrapper\" data-attrs=\"{&quot;url&quot;:&quot;&quot;,&quot;text&quot;:&quot;Share&quot;,&quot;action&quot;:null,&quot;class&quot;:null}\" data-component-name=\"ButtonCreateButton\"><a class=\"button primary\" href=\"\"><span>Share</span></a></p><p></p>","subscriber_post_subscriber_postscript_html":"<p>Subscribe, share, like, and comment. The author thanks you!</p><p class=\"button-wrapper\" data-attrs=\"{&quot;url&quot;:&quot;&quot;,&quot;text&quot;:&quot;Share&quot;,&quot;action&quot;:null,&quot;class&quot;:null}\" data-component-name=\"ButtonCreateButton\"><a class=\"button primary\" href=\"\"><span>Share</span></a></p><p></p>","free_preview_preamble_html":null},"tags":[{"name":"Fiction","canonical_name":"fiction"},{"name":"Literature","canonical_name":"literature"}],"has_paid_subs":false,"has_imported_podcast":false,"boost_enabled":false,"tts_enabled":false,"public_post_free_signup_preamble_html":"<p></p>","public_post_subscriber_preamble_html":"<p></p>","subscriber_post_subscriber_preamble_html":"<p></p>"}
+
+---
+
+TESTE 2: Payload SEM draft_bylines
+====================================
+POST /api/v1/drafts?publication_id=7678831
+Payload: {title, subtitle, body, type}
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   219  100    78  100   141    261    472 --:--:-- --:--:-- --:--:--   734
+HTTP/2 400 
+date: Thu, 29 Jan 2026 11:45:21 GMT
+content-type: application/json; charset=utf-8
+content-length: 78
+server: cloudflare
+cf-ray: 9c587b9b7e366c5a-GIG
+cf-cache-status: DYNAMIC
+cache-control: no-cache
+etag: W/"4e-FnPiqTpChBckNTYikxLQc7lGK+Y"
+set-cookie: ab_experiment_sampled=%22false%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:21 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: ab_testing_id=%2259068ec9-ea7e-4645-a78f-c4d2d031116d%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:21 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: AWSALBTG=tmDpqE37xs4z/pxsxa3jHDeifVTNCUOXdopXxdzDPDZSBlNjDhDdah6yVd8hfRf15oW2Y41hAQnhzFUO5beT7n7L5d6srxOLNwWO/jDpdE0IyjmaNWxzLk5E1Iews9VxCZ06Ms5VDDoOTadcx60KsvUwEEL5WNPJC9lDJJj0xyG9; Expires=Thu, 05 Feb 2026 11:45:21 GMT; Path=/
+set-cookie: AWSALBTGCORS=tmDpqE37xs4z/pxsxa3jHDeifVTNCUOXdopXxdzDPDZSBlNjDhDdah6yVd8hfRf15oW2Y41hAQnhzFUO5beT7n7L5d6srxOLNwWO/jDpdE0IyjmaNWxzLk5E1Iews9VxCZ06Ms5VDDoOTadcx60KsvUwEEL5WNPJC9lDJJj0xyG9; Expires=Thu, 05 Feb 2026 11:45:21 GMT; Path=/; SameSite=None; Secure
+set-cookie: ajs_anonymous_id=%2252f54c964282f2819c7a4b844771c663%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:21 GMT; SameSite=Strict
+set-cookie: visit_id=%7B%22id%22%3A%2245bf04a0-273b-4567-b7f3-48c46e81b181%22%2C%22timestamp%22%3A%222026-01-29T11%3A45%3A21.277Z%22%7D; Max-Age=1800; Domain=substack.com; Path=/; Expires=Thu, 29 Jan 2026 12:15:21 GMT; HttpOnly; SameSite=Strict
+set-cookie: connect.sid=s%3A5Ds9Wwg1Jv7wDNPdAjiHUwQO1PfqEGfj.qw37jDKUqiCfnrE3MXCJ3QxF8Fmca6O1xBOTnw76A4I; Domain=substack.com; Path=/; Expires=Wed, 29 Apr 2026 11:45:21 GMT; HttpOnly; Secure
+set-cookie: __cf_bm=smJ7Wc5XFPgGy5OxiuAGHFq1jqgtVGlQcoxcynKiPK4-1769687121-1.0.1.1-4uawW1l4NaLf9OteK2L4yIM38Vc2PGagxozrGi6tVSbh0y0NuyJE9n5o7KgJkhRoqQzggVPgA9mqOHvLcTDbUItwxDa3v79X2eEubKAiBXk; path=/; expires=Thu, 29-Jan-26 12:15:21 GMT; domain=.substack.com; HttpOnly; Secure; SameSite=None
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Accept-Encoding
+x-cluster: substack
+x-deploy: dbac8d31d3
+x-powered-by: Express
+x-served-by: Substack
+x-service: web
+alt-svc: h3=":443"; ma=86400
+
+{"errors":[{"location":"body","param":"draft_bylines","msg":"Invalid value"}]}
+
+---
+
+TESTE 3: Payload COM draft_bylines vazio
+==========================================
+POST /api/v1/drafts?publication_id=7678831
+Payload: {title, subtitle, body, type, draft_bylines: []}
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   166    0     0  100   166      0    161  0:00:01  0:00:01 --:--:--   161100  1937    0  1771  100   166   1424    133  0:00:01  0:00:01 --:--:--  1557100  1937    0  1771  100   166   1424    133  0:00:01  0:00:01 --:--:--  1557
+HTTP/2 200 
+date: Thu, 29 Jan 2026 11:45:21 GMT
+content-type: application/json; charset=utf-8
+server: cloudflare
+cf-ray: 9c587b9d381664b5-GIG
+cf-cache-status: DYNAMIC
+cache-control: no-cache
+etag: W/"6eb-+3dGERvw7h8E2k5JhhH4fInCRiU"
+set-cookie: ab_experiment_sampled=%22false%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:21 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: ab_testing_id=%22a081464e-1ad1-4a32-b283-e659882d7f5f%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:21 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: AWSALBTG=bJ6CadJq1uEAEkdCD+N5/gdJTWQG6kCOc84F0ap1PLhfha6KLnF/BrQ6zzjdHKijWRahMUEdpGMCgnqwkk11SaqDOBNmLBRSp8wdwFUduy+tf/682vxbb0pjZIXpl7WZrJiNtXcvX861/mlrWJ6kmVDno4XICAwBc4f9zBfSvyBu; Expires=Thu, 05 Feb 2026 11:45:21 GMT; Path=/
+set-cookie: AWSALBTGCORS=bJ6CadJq1uEAEkdCD+N5/gdJTWQG6kCOc84F0ap1PLhfha6KLnF/BrQ6zzjdHKijWRahMUEdpGMCgnqwkk11SaqDOBNmLBRSp8wdwFUduy+tf/682vxbb0pjZIXpl7WZrJiNtXcvX861/mlrWJ6kmVDno4XICAwBc4f9zBfSvyBu; Expires=Thu, 05 Feb 2026 11:45:21 GMT; Path=/; SameSite=None; Secure
+set-cookie: ajs_anonymous_id=%2252f54c964282f2819c7a4b844771c663%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:21 GMT; SameSite=Strict
+set-cookie: visit_id=%7B%22id%22%3A%22012446cc-e8d8-45b9-b487-3102684c2c3b%22%2C%22timestamp%22%3A%222026-01-29T11%3A45%3A21.558Z%22%7D; Max-Age=1800; Domain=substack.com; Path=/; Expires=Thu, 29 Jan 2026 12:15:21 GMT; HttpOnly; SameSite=Strict
+set-cookie: connect.sid=s%3A5Ds9Wwg1Jv7wDNPdAjiHUwQO1PfqEGfj.qw37jDKUqiCfnrE3MXCJ3QxF8Fmca6O1xBOTnw76A4I; Domain=substack.com; Path=/; Expires=Wed, 29 Apr 2026 11:45:21 GMT; HttpOnly; Secure
+set-cookie: __cf_bm=Ck_ILbWPrn8N5a1S6albHyG71qoyZtaOmngl3jmpoYo-1769687121-1.0.1.1-MYGluWtHOVUfJzerVznEDEH2oGuMSTCX3017NmCNZFCl3iepeIH_XYkQ1WgyOS5_P5zwVGLh.8T1LAizeMsOsVkRMC6bf.6fKBEO_X.EDxA; path=/; expires=Thu, 29-Jan-26 12:15:21 GMT; domain=.substack.com; HttpOnly; Secure; SameSite=None
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Accept-Encoding
+x-cluster: substack
+x-deploy: dbac8d31d3
+x-powered-by: Express
+x-served-by: Substack
+x-service: web
+alt-svc: h3=":443"; ma=86400
+
+{"type":"newsletter","draft_title":"Test With Empty Bylines","draft_subtitle":"Testing","publication_id":7678831,"audience":"only_paid","word_count":6,"write_comment_permissions":"only_paid","should_send_email":true,"show_guest_bios":true,"cover_image":null,"podcast_art_url":null,"description":null,"search_engine_description":null,"search_engine_title":null,"slug":null,"social_title":null,"podcast_description":null,"free_unlock_required":false,"syndicate_voiceover_to_rss":false,"audience_before_archived":null,"exempt_from_archive_paywall":false,"teaser_post_eligible":true,"explicit":null,"default_comment_sort":null,"draft_body":"<p>Test draft with empty bylines array.</p>","draft_podcast_duration":null,"draft_podcast_url":null,"draft_video_upload_id":null,"draft_podcast_upload_id":null,"draft_podcast_preview_upload_id":null,"draft_voiceover_upload_id":null,"draft_section_id":null,"section_chosen":null,"should_send_free_preview":false,"has_dismissed_tk_warning":false,"meter_type":"none","is_draft_hidden":false,"body":null,"draft_created_at":"2026-01-29T11:45:21.657Z","draft_updated_at":"2026-01-29T11:45:21.657Z","email_sent_at":null,"id":186183638,"is_published":false,"podcast_duration":null,"podcast_url":null,"video_upload_id":null,"podcast_upload_id":null,"podcast_preview_upload_id":null,"voiceover_upload_id":null,"post_date":null,"section_id":null,"subscriber_set_id":null,"subtitle":null,"title":null,"uuid":"c3dfda5a-81ea-4bae-bf74-9f3b67f072c2","editor_v2":false,"draftVideoUpload":null,"draftPodcastUpload":null,"podcast_episode_number":null,"podcast_season_number":null,"podcast_episode_type":null,"should_syndicate_to_other_feed":null,"syndicate_to_section_id":null,"hide_from_feed":null,"free_podcast_url":null,"free_podcast_duration":null}
+
+---
+
+TESTE 4: Payload MÍNIMO
+=======================
+POST /api/v1/drafts?publication_id=7678831
+Payload: {title, body}
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   152  100    78  100    74    307    292 --:--:-- --:--:-- --:--:--   600
+HTTP/2 400 
+date: Thu, 29 Jan 2026 11:45:22 GMT
+content-type: application/json; charset=utf-8
+content-length: 78
+server: cloudflare
+cf-ray: 9c587ba52e46647b-GIG
+cf-cache-status: DYNAMIC
+cache-control: no-cache
+etag: W/"4e-FnPiqTpChBckNTYikxLQc7lGK+Y"
+set-cookie: ab_experiment_sampled=%22false%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:22 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: ab_testing_id=%22fe60266b-9a7e-4794-a4ad-96123706c597%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:22 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: AWSALBTG=qfib39aFFO5tOIqxGWDJaxlPpNbvNQwlWZspJNQN8Tlub64loLJtItN8etKILkVuiZOxtp448lkDFxhcxvPXXj/zVkr/K/Iz1Q4Or1SV7sYxOzJWF+AwbbRHENy0Lpr6vGoMT55yfJJtIsC5GLB/EH9AY2deAysK13v6eQtF8RxV; Expires=Thu, 05 Feb 2026 11:45:22 GMT; Path=/
+set-cookie: AWSALBTGCORS=qfib39aFFO5tOIqxGWDJaxlPpNbvNQwlWZspJNQN8Tlub64loLJtItN8etKILkVuiZOxtp448lkDFxhcxvPXXj/zVkr/K/Iz1Q4Or1SV7sYxOzJWF+AwbbRHENy0Lpr6vGoMT55yfJJtIsC5GLB/EH9AY2deAysK13v6eQtF8RxV; Expires=Thu, 05 Feb 2026 11:45:22 GMT; Path=/; SameSite=None; Secure
+set-cookie: ajs_anonymous_id=%2252f54c964282f2819c7a4b844771c663%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:22 GMT; SameSite=Strict
+set-cookie: visit_id=%7B%22id%22%3A%228c4d2cd5-326f-48a1-8212-4cde88db0db5%22%2C%22timestamp%22%3A%222026-01-29T11%3A45%3A22.833Z%22%7D; Max-Age=1800; Domain=substack.com; Path=/; Expires=Thu, 29 Jan 2026 12:15:22 GMT; HttpOnly; SameSite=Strict
+set-cookie: connect.sid=s%3A5Ds9Wwg1Jv7wDNPdAjiHUwQO1PfqEGfj.qw37jDKUqiCfnrE3MXCJ3QxF8Fmca6O1xBOTnw76A4I; Domain=substack.com; Path=/; Expires=Wed, 29 Apr 2026 11:45:22 GMT; HttpOnly; Secure
+set-cookie: __cf_bm=DbenSnGVIMzuzheh590yHD7gce75.zVLgQd_niAoaSY-1769687122-1.0.1.1-NYIIkVAuHjAxQnQDd52IBWI3IDKN573893C4BlOHGpFfmermYii1eIEKBvz4mjOZdIs7EAQoaociGTeojOLDDa6GldFPSWHZVMQn0UXP1jA; path=/; expires=Thu, 29-Jan-26 12:15:22 GMT; domain=.substack.com; HttpOnly; Secure; SameSite=None
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Accept-Encoding
+x-cluster: substack
+x-deploy: dbac8d31d3
+x-powered-by: Express
+x-served-by: Substack
+x-service: web
+alt-svc: h3=":443"; ma=86400
+
+{"errors":[{"location":"body","param":"draft_bylines","msg":"Invalid value"}]}
+
+---
+
+TESTE 5: publication_id no body (sem query parameter)
+=====================================================
+POST /api/v1/drafts
+Payload: {publication_id, title, body}
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   200  100    78  100   122    141    220 --:--:-- --:--:-- --:--:--   362
+HTTP/2 400 
+date: Thu, 29 Jan 2026 11:45:23 GMT
+content-type: application/json; charset=utf-8
+content-length: 78
+server: cloudflare
+cf-ray: 9c587ba6ed12dd50-GIG
+cf-cache-status: DYNAMIC
+cache-control: no-cache
+etag: W/"4e-FnPiqTpChBckNTYikxLQc7lGK+Y"
+set-cookie: ab_experiment_sampled=%22false%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:23 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: ab_testing_id=%22b67662f8-d6ca-41a9-8d68-a534f6db09a6%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:23 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: AWSALBTG=vJXH8v/uKmyJbUDClB4AzelubSywqL337m4SZTdtfgw9odhjHGCieZqchgD9YbWXkjLJbgUHU7KqR2DccVZCtoHoUTBVyWenfcI9vmy/ToQc7kiMuRoPITaL9Qi/3OG6Fu5guvArh4uSWKMyZ9K1WOjIfLL22f6mZqTykcDG9vpG; Expires=Thu, 05 Feb 2026 11:45:23 GMT; Path=/
+set-cookie: AWSALBTGCORS=vJXH8v/uKmyJbUDClB4AzelubSywqL337m4SZTdtfgw9odhjHGCieZqchgD9YbWXkjLJbgUHU7KqR2DccVZCtoHoUTBVyWenfcI9vmy/ToQc7kiMuRoPITaL9Qi/3OG6Fu5guvArh4uSWKMyZ9K1WOjIfLL22f6mZqTykcDG9vpG; Expires=Thu, 05 Feb 2026 11:45:23 GMT; Path=/; SameSite=None; Secure
+set-cookie: ajs_anonymous_id=%2252f54c964282f2819c7a4b844771c663%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 11:45:23 GMT; SameSite=Strict
+set-cookie: visit_id=%7B%22id%22%3A%22a34fb785-d321-406c-ac75-549cb4a79d4f%22%2C%22timestamp%22%3A%222026-01-29T11%3A45%3A23.114Z%22%7D; Max-Age=1800; Domain=substack.com; Path=/; Expires=Thu, 29 Jan 2026 12:15:23 GMT; HttpOnly; SameSite=Strict
+set-cookie: connect.sid=s%3A5Ds9Wwg1Jv7wDNPdAjiHUwQO1PfqEGfj.qw37jDKUqiCfnrE3MXCJ3QxF8Fmca6O1xBOTnw76A4I; Domain=substack.com; Path=/; Expires=Wed, 29 Apr 2026 11:45:23 GMT; HttpOnly; Secure
+set-cookie: __cf_bm=WPBiCC551dr8jq0bOB8LQZwkQ2TV67fwl4b3NHA_KH8-1769687123-1.0.1.1-vVhOH7CFFePUsiefb9Rsifysp6FtPEQy8U7KJk38qKR9hR0irceRTSw3pDhaQxUVr_8WXJzaXXIcmKC.LKDwS4g_vthVUKMAdF9uSHAsNA8; path=/; expires=Thu, 29-Jan-26 12:15:23 GMT; domain=.substack.com; HttpOnly; Secure; SameSite=None
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Accept-Encoding
+x-cluster: substack
+x-deploy: dbac8d31d3
+x-powered-by: Express
+x-served-by: Substack
+x-service: web
+alt-svc: h3=":443"; ma=86400
+
+{"errors":[{"location":"body","param":"draft_bylines","msg":"Invalid value"}]}
+
+===============================================
+Testes concluídos!
+===============================================
+
+Próximas ações:
+1. Revise os status HTTP de cada teste
+2. Identifique qual teste retornou 201 (sucesso)
+3. Compartilhe os resultados para análise

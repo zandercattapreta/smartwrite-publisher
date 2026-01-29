@@ -1,0 +1,37 @@
+============================================
+SmartWrite Publisher v0.2.6.6 - API Fix Test
+Data: Thu Jan 29 09:01:38 -03 2026
+============================================
+
+Testing: draft_bylines: [] (empty array)
+Expected: HTTP 200/201 (Success)
+
+HTTP/2 200 
+date: Thu, 29 Jan 2026 12:01:38 GMT
+content-type: application/json; charset=utf-8
+server: cloudflare
+cf-ray: 9c5893785ccaec3a-GIG
+cf-cache-status: DYNAMIC
+cache-control: no-cache
+etag: W/"71b-4bP0azVHh60DchbDFydk2c3HD9k"
+set-cookie: ab_experiment_sampled=%22true%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 12:01:38 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: ab_testing_id=%22273d0b8c-2c89-4fdb-a159-4f7744c59493%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 12:01:38 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: AWSALBTG=dX7t5ZLw0O0NIXH6Abeivg1jX3770WYtq394WxACMHotaeBIF9eH684e0RYSc5JDuACMdweU3x84x2fuDdM0j6gA2EvkUM8Ahoe3K/wFabKthKN3bh3zoLnFIfH1eH9rgn9+FdOu962eQhM761s2pkbrR/debtT1OREYM5okLFBE; Expires=Thu, 05 Feb 2026 12:01:38 GMT; Path=/
+set-cookie: AWSALBTGCORS=dX7t5ZLw0O0NIXH6Abeivg1jX3770WYtq394WxACMHotaeBIF9eH684e0RYSc5JDuACMdweU3x84x2fuDdM0j6gA2EvkUM8Ahoe3K/wFabKthKN3bh3zoLnFIfH1eH9rgn9+FdOu962eQhM761s2pkbrR/debtT1OREYM5okLFBE; Expires=Thu, 05 Feb 2026 12:01:38 GMT; Path=/; SameSite=None; Secure
+set-cookie: ajs_anonymous_id=%2252f54c964282f2819c7a4b844771c663%22; Max-Age=31536000; Domain=substack.com; Path=/; Expires=Fri, 29 Jan 2027 12:01:38 GMT; SameSite=Strict
+set-cookie: visit_id=%7B%22id%22%3A%22e797659e-b722-4871-a302-14be189e7f7c%22%2C%22timestamp%22%3A%222026-01-29T12%3A01%3A38.701Z%22%7D; Max-Age=1800; Domain=substack.com; Path=/; Expires=Thu, 29 Jan 2026 12:31:38 GMT; HttpOnly; SameSite=Strict
+set-cookie: connect.sid=s%3A5Ds9Wwg1Jv7wDNPdAjiHUwQO1PfqEGfj.qw37jDKUqiCfnrE3MXCJ3QxF8Fmca6O1xBOTnw76A4I; Domain=substack.com; Path=/; Expires=Wed, 29 Apr 2026 12:01:38 GMT; HttpOnly; Secure
+set-cookie: __cf_bm=ui8gUSDqxdlvGbdKp1nVRSuXzN9Mkg_hRbV18cTlhXE-1769688098-1.0.1.1-BSiGyMpEzY6rgiaJ_UdO1qBSWIhoyQS2IjWMNuAEilHp4SZPbxJ3SwQfAUrwur7YT8__UwbPsdKiHtI9vZoezjVLdy7DscpNDQ2Ptq00mmY; path=/; expires=Thu, 29-Jan-26 12:31:38 GMT; domain=.substack.com; HttpOnly; Secure; SameSite=None
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Accept-Encoding
+x-cluster: substack
+x-deploy: dbac8d31d3
+x-powered-by: Express
+x-served-by: Substack
+x-service: web
+alt-svc: h3=":443"; ma=86400
+
+{"type":"newsletter","draft_title":"v0.2.6.6 Test - Empty Bylines Fix","draft_subtitle":"Testing the fix","publication_id":7678831,"audience":"only_paid","word_count":10,"write_comment_permissions":"only_paid","should_send_email":true,"show_guest_bios":true,"cover_image":null,"podcast_art_url":null,"description":null,"search_engine_description":null,"search_engine_title":null,"slug":null,"social_title":null,"podcast_description":null,"free_unlock_required":false,"syndicate_voiceover_to_rss":false,"audience_before_archived":null,"exempt_from_archive_paywall":false,"teaser_post_eligible":true,"explicit":null,"default_comment_sort":null,"draft_body":"<p>This draft tests the v0.2.6.6 fix with empty draft_bylines array.</p>","draft_podcast_duration":null,"draft_podcast_url":null,"draft_video_upload_id":null,"draft_podcast_upload_id":null,"draft_podcast_preview_upload_id":null,"draft_voiceover_upload_id":null,"draft_section_id":null,"section_chosen":null,"should_send_free_preview":false,"has_dismissed_tk_warning":false,"meter_type":"none","is_draft_hidden":false,"body":null,"draft_created_at":"2026-01-29T12:01:38.792Z","draft_updated_at":"2026-01-29T12:01:38.792Z","email_sent_at":null,"id":186184923,"is_published":false,"podcast_duration":null,"podcast_url":null,"video_upload_id":null,"podcast_upload_id":null,"podcast_preview_upload_id":null,"voiceover_upload_id":null,"post_date":null,"section_id":null,"subscriber_set_id":null,"subtitle":null,"title":null,"uuid":"97ff6499-5ff4-460c-a1ab-706e211cf35a","editor_v2":false,"draftVideoUpload":null,"draftPodcastUpload":null,"podcast_episode_number":null,"podcast_season_number":null,"podcast_episode_type":null,"should_syndicate_to_other_feed":null,"syndicate_to_section_id":null,"hide_from_feed":null,"free_podcast_url":null,"free_podcast_duration":null}
+============================================
+Test Complete\!
+============================================

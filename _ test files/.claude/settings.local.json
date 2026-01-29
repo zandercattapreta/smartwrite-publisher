@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(bash -c '\nTIMESTAMP=$\\(date +%Y-%m-%d_%H-%M-%S\\)\nLOG_FILE=\"\"log-teste-$TIMESTAMP.txt\"\"\n\n{\n  echo \"\"============================================\"\"\n  echo \"\"SmartWrite Publisher v0.2.6.6 - API Fix Test\"\"\n  echo \"\"Data: $\\(date\\)\"\"\n  echo \"\"============================================\"\"\n  echo \"\"\"\"\n  echo \"\"Testing: draft_bylines: [] \\(empty array\\)\"\"\n  echo \"\"Expected: HTTP 200/201 \\(Success\\)\"\"\n  echo \"\"\"\"\n\n  curl -i -X POST     -H \"\"Cookie: connect.sid=s%3A5Ds9Wwg1Jv7wDNPdAjiHUwQO1PfqEGfj.qw37jDKUqiCfnrE3MXCJ3QxF8Fmca6O1xBOTnw76A4I\"\"     -H \"\"Content-Type: application/json\"\"     -d '\"''\"'{\n      \"\"draft_title\"\": \"\"v0.2.6.6 Test - Empty Bylines Fix\"\",\n      \"\"draft_subtitle\"\": \"\"Testing the fix\"\",\n      \"\"draft_body\"\": \"\"<p>This draft tests the v0.2.6.6 fix with empty draft_bylines array.</p>\"\",\n      \"\"type\"\": \"\"newsletter\"\",\n      \"\"draft_bylines\"\": []\n    }'\"''\"'     https://thebreachrpg.substack.com/api/v1/drafts?publication_id=7678831\n\n  echo \"\"\"\"\n  echo \"\"============================================\"\"\n  echo \"\"Test Complete!\"\"\n  echo \"\"============================================\"\"\n\n} | tee \"\"$LOG_FILE\"\"\n\necho \"\"✓ Log salvo em: $LOG_FILE\"\"\n')"
+    ]
+  }
+}
