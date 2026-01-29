@@ -372,14 +372,12 @@ export class SubstackService {
 				return { success: false, error: 'Não foi possível identificar a publicação.' };
 			}
 
-			// Payload para criar draft - SEMPRE inclui publication_id
+			// Payload para criar draft - teste sem audience
 			const payload: any = {
-				publication_id: pubId,  // ✅ IMPORTANTE: publication_id deve estar no payload
 				draft_title: options.title,
 				draft_subtitle: options.subtitle || '',
 				draft_body: options.bodyHtml,
-				type: 'newsletter',
-				audience: 'everyone'
+				type: 'newsletter'
 			};
 
 			// Se tivermos um user ID válido (não 0, não null, não undefined), incluímos no byline
@@ -426,17 +424,18 @@ export class SubstackService {
 				}
 			}
 
-			// Tenta endpoint alternativo (com ou sem user_id válido)
-			this.logger.log('Tentando endpoint alternativo /api/v1/publications/{pubId}/drafts...', 'INFO');
+			// Tenta endpoint alternativo - tenta com publication_id como query parameter
+			this.logger.log('Tentando endpoint alternativo com query parameter...', 'INFO');
 			const altPayload = {
-				title: options.title,
-				subtitle: options.subtitle || '',
-				body_html: options.bodyHtml,
-				type: 'newsletter'
+				draft_title: options.title,
+				draft_subtitle: options.subtitle || '',
+				draft_body: options.bodyHtml,
+				type: 'newsletter',
+				audience: 'everyone'
 			};
 
 			const altResponse = await requestUrl({
-				url: `${this.baseUrl}/api/v1/publications/${pubId}/drafts`,
+				url: `${this.baseUrl}/api/v1/drafts?publication_id=${pubId}`,
 				method: "POST",
 				headers: this.getHeaders(),
 				body: JSON.stringify(altPayload),

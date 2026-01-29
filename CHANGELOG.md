@@ -1,5 +1,21 @@
 # Changelog: SmartWrite Publisher
 
+## [0.2.6.3] - 2026-01-29 (Hotfix III)
+
+### Fixo
+
+- **Payload Simplification**: Removido campos desnecessários do payload
+  - Removido: `publication_id` do payload (pode estar causando 400)
+  - Removido: `audience` field (pode estar causando 400)
+  - Testado: Payload mínimo com apenas campos essenciais
+
+- **Fallback Endpoint**: Alterado estratégia de fallback
+  - De: `/api/v1/publications/{pubId}/drafts` (404)
+  - Para: `/api/v1/drafts?publication_id={pubId}` (query parameter)
+  - Motivo: Endpoint /api/v1/publications/{id}/drafts não existe
+
+---
+
 ## [0.2.6.2] - 2026-01-29 (Hotfix II)
 
 ### Fixo
