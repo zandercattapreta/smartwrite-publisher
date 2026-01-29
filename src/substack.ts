@@ -396,7 +396,7 @@ export class SubstackService {
 			// Se temos um user_id válido, tenta o endpoint /api/v1/drafts
 			if (true) {
 				const response = await requestUrl({
-					url: `${this.baseUrl}/api/v1/drafts`,
+					url: `${this.baseUrl}/api/v1/drafts?publication_id=${pubId}`,
 					method: "POST",
 					headers: this.getHeaders(),
 					body: JSON.stringify(payload),
