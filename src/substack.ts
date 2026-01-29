@@ -151,22 +151,42 @@ export class SubstackService {
 
 				if (response.status === 200 && response.json) {
 					const data = response.json;
-					// O endpoint /publication retorna dados diferentes, vamos extrair o que der
-					const userInfo: SubstackUserInfo = {
-						id: data.id || 0,
-						name: data.name || data.username || data.author_name || 'Usuário',
-						email: data.email || '',
-						handle: data.handle
-					};
 
-					this.logger.log(`Conexão bem sucedida via ${url}`);
-					
-					this.user = userInfo;
-					
-					// Proativamente busca o ID da publicação para cache
-					await this.getPublicationId();
-					
-					return { success: true, user: userInfo };
+					// Endpoints /user/self retornam dados de usuário
+					if (url.includes('/user/self')) {
+						const userInfo: SubstackUserInfo = {
+							id: data.id || 0,
+							name: data.name || data.username || 'Usuário',
+							email: data.email || '',
+							handle: data.handle
+						};
+
+						this.logger.log(`Conexão bem sucedida via ${url} (User: ${userInfo.name})`);
+						this.user = userInfo;
+
+						// Proativamente busca o ID da publicação para cache
+						await this.getPublicationId();
+
+						return { success: true, user: userInfo };
+					} else if (url.includes('/publication')) {
+						// Endpoint /publication retorna dados de publicação, não de usuário
+						// Mas indica que a conexão está autenticada
+						this.logger.log(`Conexão bem sucedida via ${url} (Publication)`);
+
+						// Tenta extrair nome da publicação como fallback
+						const userName = data.name || data.author_name || 'Publicador';
+						this.user = {
+							id: 0, // Sem user ID de /publication, será 0
+							name: userName,
+							email: '',
+							handle: undefined
+						};
+
+						// Proativamente busca o ID da publicação para cache
+						await this.getPublicationId();
+
+						return { success: true, user: this.user };
+					}
 				}
 
 				if (response.status === 403) {
@@ -361,47 +381,52 @@ export class SubstackService {
 				audience: 'everyone'
 			};
 
-			// Se tivermos o usuário, incluímos no byline para evitar erro 400
-			if (this.user?.id) {
+			// Se tivermos um user ID válido (não 0, não null, não undefined), incluímos no byline
+			// NOTE: Alguns endpoints retornam 0 como user_id se não conseguem extrair, então verificamos > 0
+			if (this.user?.id && this.user.id > 0) {
 				payload.draft_bylines = [{ user_id: this.user.id }];
 				this.logger.log(`Incluindo byline para user ID: ${this.user.id}`, 'INFO');
 			} else {
-				this.logger.log('Aviso: Usuário não identificado. Draft pode falhar no byline.', 'WARN');
+				this.logger.log('Aviso: User ID não válido. Tentando criar draft sem byline.', 'WARN');
+				// Não incluímos draft_bylines se não temos um ID válido
+				// A API do Substack pode aceitar ou rejeitar, vamos tentar o endpoint alternativo se falhar
 			}
 
 			this.logger.log('Enviando para API...', 'INFO', { pubId, titleLength: options.title.length });
 
-			// Cria o draft
-			const response = await requestUrl({
-				url: `${this.baseUrl}/api/v1/drafts`,
-				method: "POST",
-				headers: this.getHeaders(),
-				body: JSON.stringify(payload),
-				throw: false
-			});
+			// Se temos um user_id válido, tenta o endpoint /api/v1/drafts
+			if (this.user?.id && this.user.id > 0) {
+				const response = await requestUrl({
+					url: `${this.baseUrl}/api/v1/drafts`,
+					method: "POST",
+					headers: this.getHeaders(),
+					body: JSON.stringify(payload),
+					throw: false
+				});
 
-			this.logger.log(`Resposta criar draft: ${response.status}`, 'INFO');
+				this.logger.log(`Resposta criar draft: ${response.status}`, 'INFO');
 
-			if (response.status === 200 || response.status === 201) {
-				const data = response.json;
-				const postId = data.id || data.draft_id;
-				const slug = data.slug || data.draft_slug || postId;
+				if (response.status === 200 || response.status === 201) {
+					const data = response.json;
+					const postId = data.id || data.draft_id;
+					const slug = data.slug || data.draft_slug || postId;
 
-				this.logger.log(`Draft criado: ${postId}`);
+					this.logger.log(`Draft criado: ${postId}`);
 
-				// Se não for draft, publica
-				if (!options.isDraft && postId) {
-					return await this.publishDraft(postId, slug);
+					if (!options.isDraft && postId) {
+						return await this.publishDraft(postId, slug);
+					}
+
+					return {
+						success: true,
+						postId: String(postId),
+						postUrl: `${this.baseUrl}/publish/post/${postId}`
+					};
 				}
-
-				return {
-					success: true,
-					postId: String(postId),
-					postUrl: `${this.baseUrl}/publish/post/${postId}`
-				};
 			}
 
-			// Tenta endpoint alternativo
+			// Tenta endpoint alternativo (com ou sem user_id válido)
+			this.logger.log('Tentando endpoint alternativo /api/v1/posts...', 'INFO');
 			const altPayload = {
 				title: options.title,
 				subtitle: options.subtitle || '',
@@ -417,6 +442,8 @@ export class SubstackService {
 				throw: false
 			});
 
+			this.logger.log(`Resposta endpoint alternativo: ${altResponse.status}`, 'INFO');
+
 			if (altResponse.status === 200 || altResponse.status === 201) {
 				const data = altResponse.json;
 				return {
@@ -426,9 +453,10 @@ export class SubstackService {
 				};
 			}
 
-			const errorText = response.text || altResponse.text || 'Erro desconhecido';
-			this.logger.log(`Erro ao criar: ${errorText.substring(0, 200)}`, 'ERROR');
-			return { success: false, error: `Erro ${response.status}: ${errorText.substring(0, 100)}` };
+			// Se ambos falharam, retorna erro
+			const errorText = altResponse.text || 'Erro desconhecido';
+			this.logger.log(`Erro ao criar post: ${errorText.substring(0, 200)}`, 'ERROR');
+			return { success: false, error: `Erro ${altResponse.status}: ${errorText.substring(0, 100)}` };
 
 		} catch (error: any) {
 			const errorMsg = error?.message || String(error);

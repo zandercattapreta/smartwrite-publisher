@@ -1,5 +1,21 @@
 # Changelog: SmartWrite Publisher
 
+## [0.2.6.1] - 2026-01-29 (Hotfix)
+
+### Fixo
+
+- **API Draft Creation**: Corrigido erro 400 "Invalid value" para `draft_bylines`
+  - Problema: Endpoint `/api/v1/drafts` rejeita draft_bylines vazio/inválido quando user_id não está disponível
+  - Solução: Se user_id não está disponível (id === 0), tenta diretamente o endpoint alternativo `/api/v1/posts`
+  - Resultado: Publicação agora funciona mesmo sem identificar explicitamente o user_id
+
+- **User Detection**: Melhorado tratamento de endpoints que não retornam user info
+  - `/api/v1/publication` retorna dados de publicação, não de usuário (user_id será 0)
+  - `/api/v1/user/self` retorna dados de usuário (user_id será extraído)
+  - Fallback agora funciona corretamente
+
+---
+
 ## [0.2.6] - 2026-01-29
 
 ### Adicionado
