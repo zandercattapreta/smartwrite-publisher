@@ -38,7 +38,13 @@
     }
   ],
   "lastRelease": "0.3.2",
-  "lastReleaseDate": "2026-01-29T14:52:00Z",
+  "lastReleaseDate": "2026-01-29T15:00:00Z",
   "nextTarget": "0.3.3",
-  "releaseCycle": "on-demand"
+  "releaseCycle": "on-demand",
+  "automationStatus": "ready",
+  "automationAdded": "2026-01-29T15:00:00Z",
+  "commands": {
+    "release": "npm run release",
+    "release-alt": "./scripts/release.sh"
+  }
 }
