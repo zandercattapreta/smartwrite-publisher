@@ -1,17 +1,17 @@
-import { Notice } from "obsidian";
+
 
 export interface LogEntry {
 	timestamp: string;
 	level: 'INFO' | 'WARN' | 'ERROR';
 	message: string;
-	data?: any;
+	data?: unknown;
 }
 
 export class Logger {
 	private logs: LogEntry[] = [];
 	private maxLogs = 50;
 
-	log(message: string, level: LogEntry['level'] = 'INFO', data?: any) {
+	log(message: string, level: LogEntry['level'] = 'INFO', data?: unknown) {
 		const entry: LogEntry = {
 			timestamp: new Date().toISOString(),
 			level,
@@ -28,7 +28,7 @@ export class Logger {
 		const consoleMsg = `[SmartWrite ${level}] ${message}`;
 		if (level === 'ERROR') console.error(consoleMsg, data);
 		else if (level === 'WARN') console.warn(consoleMsg, data);
-		else console.log(consoleMsg, data);
+		else console.debug(consoleMsg, data);
 	}
 
 	getLogs(): LogEntry[] {

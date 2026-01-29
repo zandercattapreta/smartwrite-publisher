@@ -10,12 +10,15 @@ export class HelpModal extends Modal {
 		contentEl.empty();
 		contentEl.addClass("smartwrite-help-modal");
 
-		contentEl.createEl("h2", { text: "Como usar o SmartWrite Publisher" });
+		// eslint-disable-next-line obsidianmd/ui/sentence-case
+		contentEl.createEl("h2", { text: "Como usar o SmartWrite publisher" });
 
 		const steps = contentEl.createEl("ol");
-		steps.createEl("li", { text: "Abra o Substack no seu navegador (Chrome/Edge/Firefox)." });
+		// eslint-disable-next-line obsidianmd/ui/sentence-case
+		steps.createEl("li", { text: "Abra o substack no seu navegador (Chrome/Edge/Firefox)." });
 		steps.createEl("li", { text: "Faça login na sua conta." });
-		steps.createEl("li", { text: "Abra as Ferramentas do Desenvolvedor (F12 ou Cmd+Opt+I)." });
+		// eslint-disable-next-line obsidianmd/ui/sentence-case
+		steps.createEl("li", { text: "Abra as ferramentas do Desenvolvedor (F12 ou Cmd+Opt+I)." });
 		steps.createEl("li", { text: "Vá na aba 'Application' (ou 'Storage') > 'Cookies' > 'https://substack.com'." });
 		steps.createEl("li", { text: "Procure pelo cookie chamado 'substack.sid'." });
 		steps.createEl("li", { text: "Copie o valor binário (o 'Value') e cole nas configurações deste plugin." });

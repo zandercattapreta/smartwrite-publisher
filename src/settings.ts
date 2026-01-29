@@ -17,7 +17,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 		containerEl.createEl("h2", { text: "Configurações: SmartWrite Publisher" });
 
 		new Setting(containerEl)
-			.setName("Substack Cookies")
+			.setName("Substack cookies")
 			.setDesc("Insira o valor do cookie 'substack.sid'. Mantenha-o seguro.")
 			.addText((text) =>
 				text
@@ -39,16 +39,26 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.substackUrl = value;
 						await this.plugin.saveSettings();
+						this.plugin.testConnection(); // Tenta validar em background
 					})
 			);
 
-		containerEl.createEl("h4", { text: "Ajuda e Suporte" });
+		new Setting(containerEl)
+			.setName("Testar conexão")
+			.setDesc("Verifica se os cookies e a URL estão corretos.")
+			.addButton((btn) =>
+				btn.setButtonText("Test connection").onClick(async () => {
+					await this.plugin.testConnection();
+				})
+			);
+
+		containerEl.createEl("h4", { text: "Ajuda e suporte" });
 		
 		new Setting(containerEl)
 			.setName("Como conseguir os cookies?")
 			.setDesc("Clique no botão abaixo para ver o guia passo-a-passo.")
 			.addButton((btn) =>
-				btn.setButtonText("Abrir Guia").onClick(() => {
+				btn.setButtonText("Abrir guia").onClick(() => {
 					new HelpModal(this.app).open();
 				})
 			);

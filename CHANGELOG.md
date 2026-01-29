@@ -1,5 +1,86 @@
 # Changelog: SmartWrite Publisher
 
+## [0.2.6] - 2026-01-29
+
+### Adicionado
+
+- **Markdown Converter (converter.ts)**: Novo módulo para conversão completa de Markdown para HTML com suporte a:
+  - YAML frontmatter parsing
+  - Todos os elementos Markdown (headings, bold, italic, listas, código, blockquotes, etc.)
+  - Obsidian callouts
+  - Extração automática de título e tags
+  - Escaping seguro de HTML contra XSS
+
+- **Substack API Integration (substack.ts)**: Integração completa com API do Substack incluindo:
+  - Normalização inteligente de cookies
+  - Detecção de Publication ID com 5 estratégias de fallback
+  - Testes de conexão com múltiplos endpoints
+  - Criação de rascunhos e publicação de posts
+  - Tratamento robusto de erros
+
+- **Publishing Workflow**: Interface completa para publicação:
+  - Botão "Create Draft" (ação padrão para testes)
+  - Botão "Publish Live" (para publicação imediata)
+  - Botão "Schedule" (placeholder para Phase 3)
+  - Status badge mostrando estado da nota
+  - Indicador visual de conexão (verde/vermelho)
+
+- **Enhanced Settings Tab**: Painel de configurações melhorado:
+  - Botão "Test Connection" intregado
+  - Auto-teste ao mudar URL do Substack
+  - Organização lógica de seções
+
+### Alterado
+
+- **view.ts**: Reescrita completa com integração de SubstackService e MarkdownConverter
+  - Suporte a PublisherView com referências dinâmicas para otimização
+  - Método de publicação com tratamento de estado (isPublishing)
+  - Logs em tempo real com copy/clear functionality
+  - Seção de batch publishing (UI ready, logic para Phase 3)
+
+- **main.ts**: Integração de SubstackService
+  - Inicialização de serviço com credenciais
+  - Método testConnection() centralizado
+  - Notificações de status de conexão
+  - Sincronização entre plugin e view
+
+- **settings.ts**: Melhorias de configuração
+  - Cabeçalho de configuração adicionado
+  - Botão de teste de conexão
+  - Seção "Ajuda e suporte" reorganizada
+
+### Fixo
+
+- **Type Safety**: Resolvidas todas as issues de TypeScript:
+  - Propriedades privadas do SubstackService (cookie, hostname)
+  - Declaração duplicada de publicationId removida
+  - Tipagem adequada de async/await
+
+- **Security**: Correções de segurança:
+  - XSS prevention removendo innerHTML em favor de textContent
+  - HTML escaping seguro no converter
+  - Cookie handling seguro e normalizado
+
+- **Code Quality**: Melhorias de qualidade:
+  - Remoção de imports não utilizados
+  - Sentence case consistency
+  - Proper error handling e fallbacks
+  - Documentação com JSDoc comments
+
+### Removido
+
+- Publicação forçada em modo Draft durante Phase 2 (será configurável em Phase 3)
+
+### Status
+
+- ✅ Build: SUCCESS
+- ✅ TypeScript: PASSED
+- ✅ ESLint: PASSED (17 non-blocking warnings)
+- ✅ Plugin Deployed: .obsidian/plugins/smartwrite-publisher/
+- 🔄 Testing: Ready for QA
+
+---
+
 ## [0.1.7] - 2026-01-18
 
 ### Adicionado

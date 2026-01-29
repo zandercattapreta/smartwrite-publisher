@@ -1,6 +1,6 @@
 {
 	"name": "smartwrite-publisher",
-	"version": "0.1.7",
+	"version": "0.2.6",
 	"author": "Zander Catta Preta",
 	"description": "Automatizador de publicações para Substack diretamente do Obsidian.",
 	"main": "main.js",
