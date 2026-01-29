@@ -3,6 +3,7 @@
 ## Problema Resolvido
 
 Anteriormente, a rotina de release tinha **múltiplas etapas manuais** propensas a erros:
+
 - Falhas de rede impediam o push
 - Validação manual de tipos
 - Versionamento inconsistente
@@ -114,14 +115,14 @@ Committed: YES
 
 ### ✅ Garantias do Script
 
-| Validação | Benefício |
-|-----------|-----------|
-| Estrutura do projeto | Não permite release com arquivo faltando |
-| Build TypeScript | Detecta erros de compilação antes de versionar |
-| Type safety | Previne bugs como `.trim()` em objetos |
-| Backup automático | Sempre tem snapshot anterior em `.backups/` |
-| Commit atomicamente | Tudo ou nada (não quebra estado) |
-| Fallback gracioso | Se push falhar, arquivo está seguro localmente |
+| Validação            | Benefício                                      |
+| -------------------- | ---------------------------------------------- |
+| Estrutura do projeto | Não permite release com arquivo faltando       |
+| Build TypeScript     | Detecta erros de compilação antes de versionar |
+| Type safety          | Previne bugs como `.trim()` em objetos         |
+| Backup automático    | Sempre tem snapshot anterior em `.backups/`    |
+| Commit atomicamente  | Tudo ou nada (não quebra estado)               |
+| Fallback gracioso    | Se push falhar, arquivo está seguro localmente |
 
 ### ❌ O que NÃO pode dar errado
 
@@ -181,6 +182,7 @@ cat manifest.json | jq '.version'
 ## 🐛 Troubleshooting
 
 ### "Build failed"
+
 ```bash
 # Ver erros detalhados
 npm run build
@@ -191,6 +193,7 @@ npm run release
 ```
 
 ### "Git user not configured"
+
 ```bash
 # Configurar globalmente uma vez
 git config --global user.name "Seu Nome"
@@ -201,6 +204,7 @@ npm run release
 ```
 
 ### "Push failed"
+
 ```bash
 # Seus commits estão salvos localmente
 git log --oneline -3
@@ -211,14 +215,14 @@ git push origin main
 
 ## 📈 Benefícios
 
-| Antes | Depois |
-|-------|--------|
-| 7 passos manuais | 1 comando |
-| Erros não detectados | Validação 100% |
-| Versionamento inconsistente | Auto-incremento |
-| Sem backup estruturado | Backup datado em `.backups/` |
-| Push pode falhar silenciosamente | Fallback gracioso |
-| Documentação desatualizada | Auto-sincronizada |
+| Antes                            | Depois                       |
+| -------------------------------- | ---------------------------- |
+| 7 passos manuais                 | 1 comando                    |
+| Erros não detectados             | Validação 100%               |
+| Versionamento inconsistente      | Auto-incremento              |
+| Sem backup estruturado           | Backup datado em `.backups/` |
+| Push pode falhar silenciosamente | Fallback gracioso            |
+| Documentação desatualizada       | Auto-sincronizada            |
 
 ## 🎯 Próximos Passos
 
@@ -230,6 +234,7 @@ git push origin main
 ## 📞 Suporte
 
 Para problemas, consulte:
+
 - `RELEASE_PROCEDURE.md` - Guia manual completo
 - `scripts/README.md` - Documentação técnica dos scripts
 - `.release-history.json` - Histórico de releases anteriores

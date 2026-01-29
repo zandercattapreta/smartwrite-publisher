@@ -70,20 +70,26 @@ Committed: YES
 ## ⚠️ Possíveis Erros
 
 ### Erro: "Build failed"
+
 **Solução**: Corrigir erros de TypeScript e tentar novamente
+
 ```bash
 npm run build  # Para ver os erros
 ```
 
 ### Erro: "Git user not configured"
+
 **Solução**: Configurar git user globalmente
+
 ```bash
 git config --global user.name "Zander Catta Preta"
 git config --global user.email "zander.cattapreta@zedicoes.com"
 ```
 
 ### Aviso: "Push failed (network/auth issue)"
+
 **Solução**: Commit foi criado localmente, fazer push manualmente depois
+
 ```bash
 git push origin main
 ```
@@ -103,45 +109,49 @@ git diff HEAD~1     # Ver diff da versão anterior
 Se precisar fazer release manualmente:
 
 1. **Validar e buildar**
-   ```bash
-   npm run build
-   ```
+
+    ```bash
+    npm run build
+    ```
 
 2. **Incrementar versão em manifest.json**
-   ```json
-   "version": "0.3.3"  // incrementar patch
-   ```
+
+    ```json
+    "version": "0.3.3"  // incrementar patch
+    ```
 
 3. **Atualizar CHANGELOG.md**
-   - Adicionar seção de nova versão no topo
-   - Incluir data atual
-   - Descrever mudanças
+    - Adicionar seção de nova versão no topo
+    - Incluir data atual
+    - Descrever mudanças
 
 4. **Criar backup**
-   ```bash
-   mkdir -p .backups
-   tar -czf .backups/smartwrite-publisher-v0.3.3-$(date +%Y%m%d_%H%M%S).tar.gz \
-     --exclude=node_modules --exclude=.git \
-     src/ manifest.json package.json README.md CHANGELOG.md
-   ```
+
+    ```bash
+    mkdir -p .backups
+    tar -czf .backups/smartwrite-publisher-v0.3.3-$(date +%Y%m%d_%H%M%S).tar.gz \
+      --exclude=node_modules --exclude=.git \
+      src/ manifest.json package.json README.md CHANGELOG.md
+    ```
 
 5. **Fazer commit**
-   ```bash
-   git add -A
-   git commit -m "v0.3.3: [descrição das mudanças]"
-   ```
+
+    ```bash
+    git add -A
+    git commit -m "v0.3.3: [descrição das mudanças]"
+    ```
 
 6. **Push para GitHub**
-   ```bash
-   git push origin main
-   ```
+    ```bash
+    git push origin main
+    ```
 
 ## 📊 Histórico de Releases
 
-| Versão | Data | Comando | Status |
-|--------|------|---------|--------|
-| 0.3.2 | 29/01/2026 | Manual | ✅ |
-| 0.3.3 | TBD | ./scripts/release.sh | ⏳ |
+| Versão | Data       | Comando              | Status |
+| ------ | ---------- | -------------------- | ------ |
+| 0.3.2  | 29/01/2026 | Manual               | ✅     |
+| 0.3.3  | TBD        | ./scripts/release.sh | ⏳     |
 
 ## 🎯 Próximos Melhoramentos
 
