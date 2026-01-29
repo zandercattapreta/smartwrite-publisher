@@ -1,5 +1,26 @@
 # Changelog: SmartWrite Publisher
 
+## [0.2.6.4] - 2026-01-29 (Hotfix IV - Final)
+
+### 🎯 Fixo
+
+- **draft_bylines Field**: Corrigido erro 400 "Invalid value"
+  - **Problema**: Substack API rejeita payload sem `draft_bylines`
+  - **Causa**: Código estava omitindo o campo quando user_id era 0
+  - **Solução**: SEMPRE incluir `draft_bylines` no payload
+    - Se user_id válido: `draft_bylines: [{ user_id: ... }]`
+    - Se user_id inválido: `draft_bylines: []` (vazio)
+  - **Resultado**: Payload agora sempre tem a estrutura correta
+
+### ✨ Status
+
+- ✅ Build: SUCCESS
+- ✅ Endpoint: `/api/v1/drafts` (sempre tentado)
+- ✅ Fallback: `/api/v1/drafts?publication_id={pubId}`
+- 🎯 Ready: Para publicar draft
+
+---
+
 ## [0.2.6.3] - 2026-01-29 (Hotfix III)
 
 ### Fixo

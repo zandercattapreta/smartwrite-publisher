@@ -380,15 +380,15 @@ export class SubstackService {
 				type: 'newsletter'
 			};
 
-			// Se tivermos um user ID válido (não 0, não null, não undefined), incluímos no byline
-			// NOTE: Alguns endpoints retornam 0 como user_id se não conseguem extrair, então verificamos > 0
+			// ✅ SEMPRE incluir draft_bylines no payload (pode ser vazio)
+			// Se tivermos um user ID válido, incluímos o ID
 			if (this.user?.id && this.user.id > 0) {
 				payload.draft_bylines = [{ user_id: this.user.id }];
 				this.logger.log(`Incluindo byline para user ID: ${this.user.id}`, 'INFO');
 			} else {
-				this.logger.log('Aviso: User ID não válido. Tentando criar draft sem byline.', 'WARN');
-				// Não incluímos draft_bylines se não temos um ID válido
-				// A API do Substack pode aceitar ou rejeitar, vamos tentar o endpoint alternativo se falhar
+				// API REJEITA payload sem draft_bylines, então sempre incluímos (vazio se necessário)
+				payload.draft_bylines = [];
+				this.logger.log('Aviso: User ID não válido. Enviando draft_bylines vazio.', 'WARN');
 			}
 
 			this.logger.log('Enviando para API...', 'INFO', { pubId, titleLength: options.title.length });
