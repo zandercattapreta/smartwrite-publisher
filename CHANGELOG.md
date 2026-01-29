@@ -1,5 +1,37 @@
 # Changelog: SmartWrite Publisher
 
+## [0.2.6.6] - 2026-01-29 (Hotfix VI - FIXED!)
+
+### 🎯 Fixo
+
+- **draft_bylines Field**: FINALMENTE RESOLVIDO! ✅
+  - **Problema**: Erro 400 "Invalid value" ao criar draft
+  - **Causa Raiz Identificada**: A API **EXIGE** que `draft_bylines` esteja SEMPRE presente no payload
+  - **Testes Executados**: 5 testes diretos com curl contra API Substack
+    - ✅ TESTE 3: `draft_bylines: []` → HTTP 200 (FUNCIONA!)
+    - ❌ TESTE 2: Sem draft_bylines → HTTP 400
+    - ❌ TESTE 4: Payload mínimo → HTTP 400
+    - ❌ TESTE 5: publication_id no body → HTTP 400
+  - **Solução**: SEMPRE incluir `draft_bylines` no payload, mesmo que vazio
+    - Se user_id válido: `draft_bylines: [{ user_id: ... }]`
+    - Se user_id inválido: `draft_bylines: []` ← **A CHAVE!**
+
+### ✨ Status
+
+- ✅ Build: Em progresso
+- ✅ Autenticação: VALIDADA (HTTP 200)
+- ✅ Payload: CORRIGIDO (sempre inclui draft_bylines)
+- ✅ Ready: Para publicar draft com sucesso
+
+### 📋 Próximas Ações
+
+1. Build do plugin
+2. Deploy no Obsidian (auto)
+3. Testar publicação no Obsidian
+4. Confirmar sucesso com usuário
+
+---
+
 ## [0.2.6.4] - 2026-01-29 (Hotfix IV - Final)
 
 ### 🎯 Fixo

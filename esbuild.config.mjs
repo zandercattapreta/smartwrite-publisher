@@ -13,7 +13,7 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = (process.argv[2] === "production");
 
-const OBSIDIAN_PLUGIN_PATH = "/Users/zander/Library/CloudStorage/GoogleDrive-zander.cattapreta@zedicoes.com/Shared drives/Hexplore Publishing/# The Breach/.obsidian/plugins/smartwrite-publisher";
+const OBSIDIAN_PLUGIN_PATH = "/sessions/friendly-zen-planck/mnt/_ smartwriter-publisher/.obsidian/plugins/smartwrite-publisher";
 
 const copyToObsidian = () => {
 	if (!fs.existsSync(OBSIDIAN_PLUGIN_PATH)) {
