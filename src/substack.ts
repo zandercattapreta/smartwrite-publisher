@@ -374,11 +374,15 @@ export class SubstackService {
 
 			// Payload para criar draft - teste sem audience
 			const payload: any = {
-				draft_title: options.title,
-				draft_subtitle: options.subtitle || '',
-				draft_body: options.bodyHtml,
-				type: 'newsletter'
-			};
+			draft_title: options.title,
+			draft_body: options.bodyHtml,
+			type: 'newsletter'
+		};
+
+		// Apenas adicionar subtitle se tiver valor (API rejeita strings vazias)
+		if (options.subtitle) {
+			payload.draft_subtitle = options.subtitle;
+		}
 
 			// ✅ SEMPRE incluir draft_bylines no payload (pode ser vazio)
 			// Se tivermos um user ID válido, incluímos o ID
@@ -426,13 +430,17 @@ export class SubstackService {
 
 			// Tenta endpoint alternativo - tenta com publication_id como query parameter
 			this.logger.log('Tentando endpoint alternativo com query parameter...', 'INFO');
-			const altPayload = {
-				draft_title: options.title,
-				draft_subtitle: options.subtitle || '',
-				draft_body: options.bodyHtml,
-				type: 'newsletter',
-				draft_bylines: []
-			};
+			const altPayload: any = {
+			draft_title: options.title,
+			draft_body: options.bodyHtml,
+			type: 'newsletter',
+			draft_bylines: []
+		};
+
+		// Apenas adicionar subtitle se tiver valor
+		if (options.subtitle) {
+			altPayload.draft_subtitle = options.subtitle;
+		}
 
 			const altResponse = await requestUrl({
 				url: `${this.baseUrl}/api/v1/drafts?publication_id=${pubId}`,
