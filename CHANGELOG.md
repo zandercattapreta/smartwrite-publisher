@@ -1,5 +1,37 @@
 # Changelog: SmartWrite Publisher
 
+## [0.3.11] - 2026-01-30 (Feature - File List Sorting)
+
+### ✨ New Features
+
+- **Sortable File List**: Added clickable header with sort arrow in file selection modal
+    - **Sort Arrow**: Click "File Name ▲" header to toggle sort order
+    - **Visual Indicator**: Arrow changes between ▲ (ascending) and ▼ (descending)
+    - **Default Order**: Files start sorted alphabetically (A-Z)
+    - **Instant Reordering**: List updates immediately when toggled
+    - **State Persistence**: Sort state maintained during modal session
+
+### 🎨 UI Improvements
+
+- **New Header**: Styled header bar above file list with hover effect
+- **Interactive Sorting**: One-click toggle between ascending/descending
+- **Better Organization**: Files easier to find with alphabetical sorting
+
+### 📊 Implementation Details
+
+- **Refactored Rendering**: Moved file list creation to `renderFileList()` function
+- **Dynamic Sorting**: Uses `localeCompare()` for proper alphabetical ordering
+- **State Management**: Tracks sort direction and re-renders on change
+
+### ✅ Status
+
+- ✅ Build: SUCCESS
+- ✅ Vault Sync: Obsidian v0.3.11
+- ✅ Backup: smartwrite-publisher-v0.3.11-*.tar.gz
+- ✅ Feature: File sorting fully functional
+
+---
+
 ## [0.3.10] - 2026-01-30 (Feature - Enhanced Batch Publishing UI)
 
 ### ✨ New Features

@@ -368,14 +368,43 @@
     background-color: var(--background-modifier-hover);
 }
 
+.file-list-wrapper {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    background-color: var(--background-secondary-alt);
+}
+
+.file-list-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background-color: var(--background-secondary);
+    border-bottom: 2px solid var(--background-modifier-border);
+    cursor: pointer;
+    user-select: none;
+}
+
+.file-list-header:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.file-header-text {
+    font-weight: 600;
+    font-size: 0.9em;
+    color: var(--text-normal);
+}
+
+.sort-arrow {
+    font-size: 0.8em;
+    color: var(--text-accent);
+    margin-left: 4px;
+}
+
 .file-list-container {
     max-height: 400px;
     overflow-y: auto;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
     padding: 8px;
-    margin-bottom: 20px;
-    background-color: var(--background-secondary-alt);
 }
 
 .file-item {

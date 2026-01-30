@@ -565,37 +565,70 @@ export class PublisherView extends ItemView {
 				cls: "select-all-btn"
 			});
 
+			// File list wrapper with header
+			const fileListWrapper = modal.contentEl.createDiv({ cls: "file-list-wrapper" });
+
+			// Sorting state
+			let sortAscending = true;
+			let sortedFiles = [...files].sort((a, b) => a.path.localeCompare(b.path));
+
+			// Header with sort arrow
+			const fileListHeader = fileListWrapper.createDiv({ cls: "file-list-header" });
+			const headerText = fileListHeader.createSpan({ text: "File Name ", cls: "file-header-text" });
+			const sortArrow = fileListHeader.createSpan({ text: "▲", cls: "sort-arrow" });
+
 			// File list container with checkboxes
-			const fileListContainer = modal.contentEl.createDiv({ cls: "file-list-container" });
+			const fileListContainer = fileListWrapper.createDiv({ cls: "file-list-container" });
 
 			// Track checkbox states
-			const checkboxes: Array<{ checkbox: HTMLInputElement; file: TFile }> = [];
+			let checkboxes: Array<{ checkbox: HTMLInputElement; file: TFile }> = [];
 
-			// Create checkbox for each file
-			for (const file of files) {
-				const fileItem = fileListContainer.createDiv({ cls: "file-item" });
+			// Function to render file list
+			const renderFileList = () => {
+				fileListContainer.empty();
+				checkboxes = [];
 
-				const checkbox = fileItem.createEl("input", { type: "checkbox" });
-				checkbox.checked = true;  // All checked by default
-				checkbox.addClass("file-checkbox");
+				for (const file of sortedFiles) {
+					const fileItem = fileListContainer.createDiv({ cls: "file-item" });
 
-				const label = fileItem.createEl("label", {
-					text: file.path,
-					cls: "file-label"
+					const checkbox = fileItem.createEl("input", { type: "checkbox" });
+					checkbox.checked = true;  // All checked by default
+					checkbox.addClass("file-checkbox");
+
+					const label = fileItem.createEl("label", {
+						text: file.path,
+						cls: "file-label"
+					});
+					label.onclick = () => {
+						checkbox.checked = !checkbox.checked;
+						updateSelectAllButton();
+					};
+
+					checkboxes.push({ checkbox, file });
+				}
+			};
+
+			// Sort toggle handler
+			fileListHeader.onclick = () => {
+				sortAscending = !sortAscending;
+				sortArrow.textContent = sortAscending ? "▲" : "▼";
+
+				sortedFiles = [...sortedFiles].sort((a, b) => {
+					const comparison = a.path.localeCompare(b.path);
+					return sortAscending ? comparison : -comparison;
 				});
-				label.onclick = () => {
-					checkbox.checked = !checkbox.checked;
-					updateSelectAllButton();
-				};
 
-				checkboxes.push({ checkbox, file });
-			}
+				renderFileList();
+			};
 
 			// Update Select All button text based on current state
 			const updateSelectAllButton = () => {
 				const allChecked = checkboxes.every(item => item.checkbox.checked);
 				selectAllBtn.textContent = allChecked ? "Unselect All" : "Select All";
 			};
+
+			// Initial render
+			renderFileList();
 
 			// Select All / Unselect All logic
 			selectAllBtn.onclick = () => {
