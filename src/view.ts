@@ -19,7 +19,6 @@ export class PublisherView extends ItemView {
 	noteNameEl: HTMLParagraphElement;
 	statusBadgeEl: HTMLSpanElement;
 	connectionDotEl: HTMLSpanElement;
-	connectionTextEl: HTMLSpanElement;
 	publishBtns: HTMLButtonElement[] = [];
 
 	constructor(leaf: WorkspaceLeaf, plugin: SmartWritePublisher) {
@@ -64,10 +63,12 @@ export class PublisherView extends ItemView {
 
 		// Header
 		const header = container.createDiv({ cls: "sidebar-header" });
-		header.createEl("h4", { text: "SmartWrite Publisher" });
+		const titleContainer = header.createDiv({ cls: "title-container" });
+		titleContainer.createEl("h4", { text: "SmartWrite Publisher" });
+		titleContainer.createEl("span", { text: `v${this.plugin.manifest.version}`, cls: "version-badge" });
 		const helpBtn = header.createEl("button", {
 			cls: "clickable-icon help-icon",
-			attr: { "aria-label": "Como usar" }
+			attr: { "aria-label": "How to use" }
 		});
 		helpBtn.textContent = "?";
 		helpBtn.onclick = () => {
@@ -76,17 +77,26 @@ export class PublisherView extends ItemView {
 		};
 
 		// --- Section: Active Note ---
-		const activeNoteSection = container.createDiv({ cls: "publisher-section" });
-		activeNoteSection.createEl("h5", { text: "Nota ativa" });
-		const noteInfo = activeNoteSection.createDiv({ cls: "note-info" });
+		const activeNoteSection = container.createDiv({ cls: "publisher-section collapsible-section" });
+		const activeNoteHeader = activeNoteSection.createDiv({ cls: "section-header" });
+		const activeNoteToggle = activeNoteHeader.createEl("span", { cls: "collapse-icon", text: "▼" });
+		activeNoteHeader.createEl("h5", { text: "Active Note" });
+		const activeNoteContent = activeNoteSection.createDiv({ cls: "section-content" });
+
+		activeNoteHeader.onclick = () => {
+			activeNoteContent.toggleClass("collapsed", !activeNoteContent.hasClass("collapsed"));
+			activeNoteToggle.textContent = activeNoteContent.hasClass("collapsed") ? "▶" : "▼";
+		};
+
+		const noteInfo = activeNoteContent.createDiv({ cls: "note-info" });
 		this.noteNameEl = noteInfo.createEl("p", {
-			text: this.activeFile ? this.activeFile.basename : "Nenhuma nota selecionada",
+			text: this.activeFile ? this.activeFile.basename : "No note selected",
 			cls: "note-name"
 		});
 
-		this.statusBadgeEl = activeNoteSection.createSpan({ text: "Pendente", cls: "status-badge" });
+		this.statusBadgeEl = activeNoteContent.createSpan({ text: "Pending", cls: "status-badge" });
 
-		const actionButtons = activeNoteSection.createDiv({ cls: "action-buttons" });
+		const actionButtons = activeNoteContent.createDiv({ cls: "action-buttons" });
 
 		// Botão Create Draft (AGORA DEFAULT)
 		const draftBtn = actionButtons.createEl("button", { text: "Create draft", cls: "mod-cta" });
@@ -100,13 +110,22 @@ export class PublisherView extends ItemView {
 
 		// Botão Schedule (desabilitado por enquanto)
 		const scheduleBtn = actionButtons.createEl("button", { text: "Schedule", attr: { disabled: "true" } });
-		scheduleBtn.title = "Em breve";
+		scheduleBtn.title = "Coming soon";
 
 		// --- Section: Directory Publishing ---
-		const batchSection = container.createDiv({ cls: "publisher-section" });
-		batchSection.createEl("h5", { text: "Publicação em lote" });
-		const folderSelect = batchSection.createEl("select");
-		folderSelect.createEl("option", { text: "Selecione uma pasta..." });
+		const batchSection = container.createDiv({ cls: "publisher-section collapsible-section" });
+		const batchHeader = batchSection.createDiv({ cls: "section-header" });
+		const batchToggle = batchHeader.createEl("span", { cls: "collapse-icon", text: "▼" });
+		batchHeader.createEl("h5", { text: "Batch Publishing" });
+		const batchContent = batchSection.createDiv({ cls: "section-content" });
+
+		batchHeader.onclick = () => {
+			batchContent.toggleClass("collapsed", !batchContent.hasClass("collapsed"));
+			batchToggle.textContent = batchContent.hasClass("collapsed") ? "▶" : "▼";
+		};
+
+		const folderSelect = batchContent.createEl("select");
+		folderSelect.createEl("option", { text: "Select a folder...", value: "" });
 
 		// Popula com pastas do vault
 		const folders = this.app.vault.getAllLoadedFiles()
@@ -120,19 +139,35 @@ export class PublisherView extends ItemView {
 			}
 		}
 
-		const batchBtn = batchSection.createEl("button", { text: "Publish all", cls: "mod-warning", attr: { disabled: "true" } });
-		batchBtn.title = "Em desenvolvimento";
+		// Progress indicator
+		const progressEl = batchContent.createDiv({ cls: "batch-progress", text: "" });
+		progressEl.hide();
 
-		// --- Section: Quick Settings ---
-		const settingsSection = container.createDiv({ cls: "publisher-section settings-section" });
-		settingsSection.createEl("h5", { text: "Configurações rápidas" });
+		// Publish all button (now ENABLED)
+		const batchBtn = batchContent.createEl("button", { text: "Publish all as drafts", cls: "mod-warning" });
+		batchBtn.onclick = async () => {
+			const selectedFolder = folderSelect.value;
+			await this.handleBatchPublish(selectedFolder);
+		};
 
-		const connectionStatus = settingsSection.createDiv({ cls: "connection-status" });
-		this.connectionDotEl = connectionStatus.createSpan({ cls: `status-dot ${this.isConnected ? 'green' : 'red'}` });
-		this.connectionTextEl = connectionStatus.createSpan({ text: this.isConnected ? " Conectado" : " Desconectado" });
+		// --- Section: Substack Connection ---
+		const settingsSection = container.createDiv({ cls: "publisher-section collapsible-section settings-section" });
+		const settingsHeader = settingsSection.createDiv({ cls: "section-header" });
+		const settingsToggle = settingsHeader.createEl("span", { cls: "collapse-icon", text: "▼" });
+		const settingsTitleContainer = settingsHeader.createDiv({ cls: "section-title-with-status" });
+		settingsTitleContainer.createEl("h5", { text: "Substack Connection" });
+		this.connectionDotEl = settingsTitleContainer.createSpan({ cls: `status-dot ${this.isConnected ? 'green' : 'red'}` });
+		const settingsContent = settingsSection.createDiv({ cls: "section-content" });
 
-		const cookieInput = settingsSection.createEl("input", {
-			attr: { type: "password", placeholder: "Colar cookies (substack.sid)" }
+		settingsHeader.onclick = () => {
+			settingsContent.toggleClass("collapsed", !settingsContent.hasClass("collapsed"));
+			settingsToggle.textContent = settingsContent.hasClass("collapsed") ? "▶" : "▼";
+		};
+
+		// Cookie Secret
+		settingsContent.createEl("label", { text: "Cookie Secret", cls: "input-label" });
+		const cookieInput = settingsContent.createEl("input", {
+			attr: { type: "password", placeholder: "Paste your connect.sid cookie" }
 		});
 		cookieInput.value = this.plugin.settings.cookies;
 		cookieInput.onchange = async () => {
@@ -141,8 +176,10 @@ export class PublisherView extends ItemView {
 			this.configureService();
 		};
 
-		const urlInput = settingsSection.createEl("input", {
-			attr: { type: "text", placeholder: "URL do Substack" }
+		// URL Substack
+		settingsContent.createEl("label", { text: "URL Substack", cls: "input-label" });
+		const urlInput = settingsContent.createEl("input", {
+			attr: { type: "text", placeholder: "https://yourname.substack.com" }
 		});
 		urlInput.value = this.plugin.settings.substackUrl;
 		urlInput.onchange = async () => {
@@ -151,35 +188,44 @@ export class PublisherView extends ItemView {
 			this.configureService();
 		};
 
-		const testBtn = settingsSection.createEl("button", { text: "Test connection" });
+		const testBtn = settingsContent.createEl("button", { text: "Test connection" });
 		testBtn.onclick = () => this.testConnection();
 
 		// --- Section: System Logs ---
-		const logSection = container.createDiv({ cls: "publisher-section log-section" });
-		const logHeader = logSection.createDiv({ cls: "log-header" });
-		logHeader.createEl("h5", { text: "Logs de sistema" });
+		const logSection = container.createDiv({ cls: "publisher-section collapsible-section log-section" });
+		const logHeaderContainer = logSection.createDiv({ cls: "section-header" });
+		const logToggle = logHeaderContainer.createEl("span", { cls: "collapse-icon", text: "▼" });
+		logHeaderContainer.createEl("h5", { text: "System Logs" });
+		const logContent = logSection.createDiv({ cls: "section-content" });
+
+		logHeaderContainer.onclick = () => {
+			logContent.toggleClass("collapsed", !logContent.hasClass("collapsed"));
+			logToggle.textContent = logContent.hasClass("collapsed") ? "▶" : "▼";
+		};
+
+		const logHeader = logContent.createDiv({ cls: "log-header" });
 		const copyLogBtn = logHeader.createEl("button", {
-			text: "Copiar",
+			text: "Copy",
 			cls: "log-copy-btn",
-			attr: { "aria-label": "Copiar logs para suporte" }
+			attr: { "aria-label": "Copy logs for support" }
 		});
 		copyLogBtn.onclick = () => {
 			navigator.clipboard.writeText(this.plugin.logger.getFormattedLogs());
-			new Notice("Logs copiados para a área de transferência.");
+			new Notice("Logs copied to clipboard.");
 		};
 
 		const clearLogBtn = logHeader.createEl("button", {
-			text: "Limpar",
+			text: "Clear",
 			cls: "log-clear-btn",
-			attr: { "aria-label": "Limpar logs" }
+			attr: { "aria-label": "Clear logs" }
 		});
 		clearLogBtn.onclick = () => {
 			this.plugin.logger.clear();
 			this.refreshLogs();
-			new Notice("Logs limpos.");
+			new Notice("Logs cleared.");
 		};
 
-		const logConsole = logSection.createDiv({ cls: "log-console" });
+		const logConsole = logContent.createDiv({ cls: "log-console" });
 		this.renderLogs(logConsole);
 	}
 
@@ -191,7 +237,7 @@ export class PublisherView extends ItemView {
 		const logs = this.plugin.logger.getLogs();
 
 		if (logs.length === 0) {
-			logConsole.createEl("p", { text: "Nenhum evento registrado.", cls: "empty-log" });
+			logConsole.createEl("p", { text: "No events recorded.", cls: "empty-log" });
 		} else {
 			logs.forEach(l => {
 				const line = logConsole.createDiv({ cls: `log-line ${l.level.toLowerCase()}` });
@@ -242,9 +288,8 @@ export class PublisherView extends ItemView {
 	 * Atualiza o indicador de conexão
 	 */
 	updateConnectionStatus() {
-		if (this.connectionDotEl && this.connectionTextEl) {
+		if (this.connectionDotEl) {
 			this.connectionDotEl.className = `status-dot ${this.isConnected ? 'green' : 'red'}`;
-			this.connectionTextEl.textContent = this.isConnected ? " Conectado" : " Desconectado";
 		}
 	}
 
@@ -263,24 +308,24 @@ export class PublisherView extends ItemView {
 	 */
 	async handlePublish(isDraft: boolean) {
 		if (!this.activeFile) {
-			new Notice("Nenhuma nota selecionada.");
+			new Notice("No note selected.");
 			return;
 		}
 
 		if (!this.substackService.isConfigured()) {
-			new Notice("Configure o cookie e URL primeiro.");
+			new Notice("Please configure cookie and URL first.");
 			return;
 		}
 
 		if (this.isPublishing) {
-			new Notice("Publicação em andamento...");
+			new Notice("Publishing in progress...");
 			return;
 		}
 
 		this.isPublishing = true;
 		this.setPublishButtonsState(true);
 
-		const action = isDraft ? "Criando rascunho" : "Publicando";
+		const action = isDraft ? "Creating draft" : "Publishing";
 		const notice = new Notice(`${action}: ${this.activeFile.basename}...`, 0);
 
 		try {
@@ -296,18 +341,17 @@ export class PublisherView extends ItemView {
 			this.plugin.logger.log(`Convertido: ${converted.title} (${htmlLength} chars)`);
 
 			// Publica no Substack
-			// FORÇADO: Sempre rascunho (isDraft: true) durante fase de testes
 			const result = await this.substackService.publishPost({
 				title: converted.title,
 				subtitle: converted.subtitle,
 				bodyHtml: converted.html,
-				isDraft: true // Forçado
+				isDraft: isDraft
 			});
 
 			if (result.success) {
 				const successMsg = isDraft
-					? `Rascunho criado: ${converted.title}`
-					: `Publicado: ${converted.title}`;
+					? `Draft created: ${converted.title}`
+					: `Published: ${converted.title}`;
 				new Notice(successMsg);
 
 				if (result.postUrl) {
@@ -316,16 +360,16 @@ export class PublisherView extends ItemView {
 
 				// Atualiza badge de status
 				if (this.statusBadgeEl) {
-					this.statusBadgeEl.textContent = isDraft ? "Rascunho" : "Publicado";
+					this.statusBadgeEl.textContent = isDraft ? "Draft" : "Published";
 					this.statusBadgeEl.className = `status-badge ${isDraft ? 'draft' : 'published'}`;
 				}
 			} else {
-				new Notice(`Erro: ${result.error}`);
+				new Notice(`Error: ${result.error}`);
 			}
 		} catch (error: any) {
 			const errorMsg = error?.message || String(error);
-			new Notice(`Erro ao publicar: ${errorMsg}`);
-			this.plugin.logger.log("Exceção no handlePublish", 'ERROR', error);
+			new Notice(`Error publishing: ${errorMsg}`);
+			this.plugin.logger.log("Exception in handlePublish", 'ERROR', error);
 		} finally {
 			notice.hide();
 			this.isPublishing = false;
@@ -345,6 +389,233 @@ export class PublisherView extends ItemView {
 				btn.removeAttribute('disabled');
 			}
 		}
+	}
+
+	/**
+	 * Batch Publishing: Publica múltiplos drafts de uma pasta
+	 */
+	async handleBatchPublish(folderPath: string): Promise<void> {
+		if (!folderPath || folderPath === "Select a folder...") {
+			new Notice("Please select a folder first.");
+			return;
+		}
+
+		if (!this.substackService.isConfigured()) {
+			new Notice("Please configure cookie and URL first.");
+			return;
+		}
+
+		// 1. Get all markdown files from folder
+		const files = this.app.vault.getMarkdownFiles()
+			.filter(f => f.path.startsWith(folderPath));
+
+		if (files.length === 0) {
+			new Notice("No markdown files found in selected folder.");
+			return;
+		}
+
+		// 2. Confirm with user
+		const confirmed = await this.confirmBatchPublish(files.length);
+		if (!confirmed) return;
+
+		// 3. Create drafts one by one
+		const results: Array<{ file: string; success: boolean; error?: string }> = [];
+		const totalFiles = files.length;
+
+		this.plugin.logger.log(`Starting batch publish: ${totalFiles} files`);
+
+		for (let i = 0; i < files.length; i++) {
+			const file = files[i];
+			if (!file) continue;  // Safety check
+
+			const progress = `(${i + 1}/${totalFiles})`;
+
+			new Notice(`Publishing ${progress}: ${file.basename}...`, 3000);
+			this.plugin.logger.log(`Batch ${progress}: ${file.basename}`);
+
+			try {
+				const result = await this.createDraftFromFile(file);
+				results.push({
+					file: file.basename,
+					success: result.success,
+					error: result.error
+				});
+
+				// Small delay to avoid rate limiting
+				if (i < files.length - 1) {
+					await this.sleep(1500);
+				}
+			} catch (error: any) {
+				const errorMsg = error?.message || String(error);
+				results.push({
+					file: file.basename,
+					success: false,
+					error: errorMsg
+				});
+				this.plugin.logger.log(`Batch error for ${file.basename}: ${errorMsg}`, 'ERROR');
+			}
+		}
+
+		// 4. Show summary
+		this.showBatchResults(results);
+		this.refreshLogs();
+	}
+
+	/**
+	 * Confirma batch publish com o usuário
+	 */
+	async confirmBatchPublish(fileCount: number): Promise<boolean> {
+		return new Promise((resolve) => {
+			const modal = new (require('obsidian').Modal)(this.app);
+			modal.titleEl.setText("Batch Publishing");
+
+			modal.contentEl.empty();
+			modal.contentEl.createEl("p", {
+				text: `You are about to create ${fileCount} draft(s) in Substack.`
+			});
+			modal.contentEl.createEl("p", {
+				text: "This action will:",
+				cls: "batch-confirm-warning"
+			});
+
+			const list = modal.contentEl.createEl("ul");
+			list.createEl("li", { text: `Process ${fileCount} markdown file(s)` });
+			list.createEl("li", { text: "Create one draft per file" });
+			list.createEl("li", { text: "Take approximately " + Math.ceil(fileCount * 1.5) + " seconds" });
+
+			modal.contentEl.createEl("p", {
+				text: "Do you want to continue?",
+				cls: "batch-confirm-question"
+			});
+
+			const buttonContainer = modal.contentEl.createDiv({ cls: "modal-button-container" });
+
+			const confirmBtn = buttonContainer.createEl("button", {
+				text: "Yes, create drafts",
+				cls: "mod-cta"
+			});
+			confirmBtn.onclick = () => {
+				modal.close();
+				resolve(true);
+			};
+
+			const cancelBtn = buttonContainer.createEl("button", { text: "Cancel" });
+			cancelBtn.onclick = () => {
+				modal.close();
+				resolve(false);
+			};
+
+			modal.open();
+		});
+	}
+
+	/**
+	 * Cria draft a partir de um arquivo
+	 */
+	async createDraftFromFile(file: TFile): Promise<{ success: boolean; error?: string; postUrl?: string }> {
+		try {
+			// Lê o conteúdo da nota
+			const content = await this.app.vault.read(file);
+
+			// Converte para HTML
+			const converted = this.converter.convert(content, file.basename);
+
+			// Publica no Substack como draft
+			const result = await this.substackService.publishPost({
+				title: converted.title,
+				subtitle: converted.subtitle,
+				bodyHtml: converted.html,
+				isDraft: true  // Sempre draft em batch
+			});
+
+			if (result.success) {
+				this.plugin.logger.log(`✓ Draft created: ${converted.title}`);
+				return { success: true, postUrl: result.postUrl };
+			} else {
+				this.plugin.logger.log(`✗ Failed: ${converted.title} - ${result.error}`, 'ERROR');
+				return { success: false, error: result.error };
+			}
+		} catch (error: any) {
+			const errorMsg = error?.message || String(error);
+			this.plugin.logger.log(`✗ Exception: ${file.basename} - ${errorMsg}`, 'ERROR');
+			return { success: false, error: errorMsg };
+		}
+	}
+
+	/**
+	 * Mostra resumo dos resultados do batch
+	 */
+	showBatchResults(results: Array<{ file: string; success: boolean; error?: string }>) {
+		const modal = new (require('obsidian').Modal)(this.app);
+		modal.titleEl.setText("Batch Publishing Results");
+
+		modal.contentEl.empty();
+
+		const successCount = results.filter(r => r.success).length;
+		const failCount = results.filter(r => !r.success).length;
+
+		// Summary
+		const summary = modal.contentEl.createDiv({ cls: "batch-summary" });
+		summary.createEl("p", {
+			text: `Completed: ${results.length} file(s)`,
+			cls: "batch-summary-total"
+		});
+		summary.createEl("p", {
+			text: `✓ Success: ${successCount}`,
+			cls: "batch-summary-success"
+		});
+		if (failCount > 0) {
+			summary.createEl("p", {
+				text: `✗ Failed: ${failCount}`,
+				cls: "batch-summary-error"
+			});
+		}
+
+		// Detailed results
+		if (results.length > 0) {
+			modal.contentEl.createEl("h6", { text: "Details:" });
+			const resultList = modal.contentEl.createEl("ul", { cls: "batch-results-list" });
+
+			for (const result of results) {
+				const item = resultList.createEl("li");
+				const icon = result.success ? "✓" : "✗";
+				const cls = result.success ? "batch-result-success" : "batch-result-error";
+
+				item.createSpan({ text: `${icon} `, cls: cls });
+				item.createSpan({ text: result.file });
+
+				if (!result.success && result.error) {
+					item.createEl("br");
+					item.createSpan({
+						text: `   Error: ${result.error}`,
+						cls: "batch-error-detail"
+					});
+				}
+			}
+		}
+
+		// Close button
+		const closeBtn = modal.contentEl.createEl("button", {
+			text: "Close",
+			cls: "mod-cta"
+		});
+		closeBtn.onclick = () => modal.close();
+
+		modal.open();
+
+		// Also show toast notification
+		if (failCount === 0) {
+			new Notice(`✓ Batch complete: ${successCount} draft(s) created successfully!`);
+		} else {
+			new Notice(`Batch complete: ${successCount} success, ${failCount} failed. Check logs for details.`);
+		}
+	}
+
+	/**
+	 * Sleep utility para delays entre requests
+	 */
+	sleep(ms: number): Promise<void> {
+		return new Promise(resolve => setTimeout(resolve, ms));
 	}
 
 	async onClose() {

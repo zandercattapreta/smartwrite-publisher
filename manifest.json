@@ -1,10 +1,10 @@
 {
-  "id": "smartwrite-publisher",
-  "name": "SmartWrite Publisher",
-  "version": "0.3.3",
-  "minAppVersion": "0.15.0",
-  "description": "Automatizador de publicações para Substack diretamente do Obsidian.",
-  "author": "Zander Catta Preta",
-  "authorUrl": "https://github.com/zandercpzed/smartwrite-publisher",
-  "isDesktopOnly": true
+	"id": "smartwrite-publisher",
+	"name": "SmartWrite Publisher",
+	"version": "0.3.9",
+	"minAppVersion": "0.15.0",
+	"description": "Automatizador de publicações para Substack diretamente do Obsidian.",
+	"author": "Zander Catta Preta",
+	"authorUrl": "https://github.com/zandercpzed/smartwrite-publisher",
+	"isDesktopOnly": true
 }
