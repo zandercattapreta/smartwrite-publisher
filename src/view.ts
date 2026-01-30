@@ -124,8 +124,19 @@ export class PublisherView extends ItemView {
 			batchToggle.textContent = batchContent.hasClass("collapsed") ? "▶" : "▼";
 		};
 
-		const folderSelect = batchContent.createEl("select");
-		folderSelect.createEl("option", { text: "Select a folder...", value: "" });
+		// Folder input with autocomplete
+		const folderInputContainer = batchContent.createDiv({ cls: "folder-input-container" });
+
+		const folderInput = folderInputContainer.createEl("input", {
+			type: "text",
+			placeholder: "Type or select a folder...",
+			cls: "folder-input"
+		});
+		folderInput.setAttribute("list", "folder-list");
+
+		// Datalist for autocomplete
+		const datalist = folderInputContainer.createEl("datalist");
+		datalist.id = "folder-list";
 
 		// Popula com pastas do vault
 		const folders = this.app.vault.getAllLoadedFiles()
@@ -135,9 +146,23 @@ export class PublisherView extends ItemView {
 
 		for (const folder of folders) {
 			if (folder) {
-				folderSelect.createEl("option", { text: folder, value: folder });
+				datalist.createEl("option", { value: folder });
 			}
 		}
+
+		// Browse button
+		const browseBtn = folderInputContainer.createEl("button", {
+			text: "Browse",
+			cls: "browse-btn"
+		});
+		browseBtn.onclick = () => {
+			// Show folder suggestion modal
+			this.showFolderBrowseModal(folders).then(selectedFolder => {
+				if (selectedFolder) {
+					folderInput.value = selectedFolder;
+				}
+			});
+		};
 
 		// Progress indicator
 		const progressEl = batchContent.createDiv({ cls: "batch-progress", text: "" });
@@ -146,7 +171,7 @@ export class PublisherView extends ItemView {
 		// Publish all button (now ENABLED)
 		const batchBtn = batchContent.createEl("button", { text: "Publish all as drafts", cls: "mod-warning" });
 		batchBtn.onclick = async () => {
-			const selectedFolder = folderSelect.value;
+			const selectedFolder = folderInput.value.trim();
 			await this.handleBatchPublish(selectedFolder);
 		};
 
@@ -395,7 +420,7 @@ export class PublisherView extends ItemView {
 	 * Batch Publishing: Publica múltiplos drafts de uma pasta
 	 */
 	async handleBatchPublish(folderPath: string): Promise<void> {
-		if (!folderPath || folderPath === "Select a folder...") {
+		if (!folderPath || folderPath === "Select a folder..." || folderPath === "") {
 			new Notice("Please select a folder first.");
 			return;
 		}
@@ -414,18 +439,21 @@ export class PublisherView extends ItemView {
 			return;
 		}
 
-		// 2. Confirm with user
-		const confirmed = await this.confirmBatchPublish(files.length);
-		if (!confirmed) return;
+		// 2. Show file selection modal
+		const selectedFiles = await this.showFileSelectionModal(files);
+		if (!selectedFiles || selectedFiles.length === 0) {
+			new Notice("No files selected.");
+			return;
+		}
 
 		// 3. Create drafts one by one
 		const results: Array<{ file: string; success: boolean; error?: string }> = [];
-		const totalFiles = files.length;
+		const totalFiles = selectedFiles.length;
 
 		this.plugin.logger.log(`Starting batch publish: ${totalFiles} files`);
 
-		for (let i = 0; i < files.length; i++) {
-			const file = files[i];
+		for (let i = 0; i < selectedFiles.length; i++) {
+			const file = selectedFiles[i];
 			if (!file) continue;  // Safety check
 
 			const progress = `(${i + 1}/${totalFiles})`;
@@ -442,7 +470,7 @@ export class PublisherView extends ItemView {
 				});
 
 				// Small delay to avoid rate limiting
-				if (i < files.length - 1) {
+				if (i < selectedFiles.length - 1) {
 					await this.sleep(1500);
 				}
 			} catch (error: any) {
@@ -459,6 +487,152 @@ export class PublisherView extends ItemView {
 		// 4. Show summary
 		this.showBatchResults(results);
 		this.refreshLogs();
+	}
+
+	/**
+	 * Modal de navegação de pastas (Browse)
+	 */
+	async showFolderBrowseModal(folders: string[]): Promise<string | null> {
+		return new Promise((resolve) => {
+			const modal = new (require('obsidian').Modal)(this.app);
+			modal.titleEl.setText("Browse Folders");
+
+			modal.contentEl.empty();
+			modal.contentEl.addClass("folder-browse-modal");
+
+			modal.contentEl.createEl("p", {
+				text: "Select a folder from your vault:",
+				cls: "folder-browse-subtitle"
+			});
+
+			// Folder list
+			const folderListContainer = modal.contentEl.createDiv({ cls: "folder-browse-list" });
+
+			if (folders.length === 0) {
+				folderListContainer.createEl("p", {
+					text: "No folders found in vault.",
+					cls: "empty-folder-list"
+				});
+			} else {
+				for (const folder of folders) {
+					const folderItem = folderListContainer.createDiv({ cls: "folder-browse-item" });
+					folderItem.textContent = folder || "(root)";
+					folderItem.onclick = () => {
+						modal.close();
+						resolve(folder);
+					};
+				}
+			}
+
+			// Cancel button
+			const buttonContainer = modal.contentEl.createDiv({ cls: "modal-button-container" });
+			const cancelBtn = buttonContainer.createEl("button", { text: "Cancel" });
+			cancelBtn.onclick = () => {
+				modal.close();
+				resolve(null);
+			};
+
+			modal.open();
+		});
+	}
+
+	/**
+	 * Modal de seleção de arquivos com checkboxes
+	 */
+	async showFileSelectionModal(files: TFile[]): Promise<TFile[] | null> {
+		return new Promise((resolve) => {
+			const modal = new (require('obsidian').Modal)(this.app);
+			modal.titleEl.setText("Select Files to Publish");
+
+			modal.contentEl.empty();
+			modal.contentEl.addClass("file-selection-modal");
+
+			// Info text
+			modal.contentEl.createEl("p", {
+				text: `Found ${files.length} markdown file(s) in the selected folder.`,
+				cls: "file-selection-info"
+			});
+
+			modal.contentEl.createEl("p", {
+				text: "Select which files you want to publish as drafts:",
+				cls: "file-selection-subtitle"
+			});
+
+			// Select All / Unselect All button
+			const selectAllContainer = modal.contentEl.createDiv({ cls: "select-all-container" });
+			const selectAllBtn = selectAllContainer.createEl("button", {
+				text: "Unselect All",
+				cls: "select-all-btn"
+			});
+
+			// File list container with checkboxes
+			const fileListContainer = modal.contentEl.createDiv({ cls: "file-list-container" });
+
+			// Track checkbox states
+			const checkboxes: Array<{ checkbox: HTMLInputElement; file: TFile }> = [];
+
+			// Create checkbox for each file
+			for (const file of files) {
+				const fileItem = fileListContainer.createDiv({ cls: "file-item" });
+
+				const checkbox = fileItem.createEl("input", { type: "checkbox" });
+				checkbox.checked = true;  // All checked by default
+				checkbox.addClass("file-checkbox");
+
+				const label = fileItem.createEl("label", {
+					text: file.path,
+					cls: "file-label"
+				});
+				label.onclick = () => {
+					checkbox.checked = !checkbox.checked;
+					updateSelectAllButton();
+				};
+
+				checkboxes.push({ checkbox, file });
+			}
+
+			// Update Select All button text based on current state
+			const updateSelectAllButton = () => {
+				const allChecked = checkboxes.every(item => item.checkbox.checked);
+				selectAllBtn.textContent = allChecked ? "Unselect All" : "Select All";
+			};
+
+			// Select All / Unselect All logic
+			selectAllBtn.onclick = () => {
+				const allChecked = checkboxes.every(item => item.checkbox.checked);
+				const newState = !allChecked;
+
+				for (const item of checkboxes) {
+					item.checkbox.checked = newState;
+				}
+
+				updateSelectAllButton();
+			};
+
+			// Button container
+			const buttonContainer = modal.contentEl.createDiv({ cls: "modal-button-container" });
+
+			const confirmBtn = buttonContainer.createEl("button", {
+				text: "CONFIRM",
+				cls: "mod-cta"
+			});
+			confirmBtn.onclick = () => {
+				const selectedFiles = checkboxes
+					.filter(item => item.checkbox.checked)
+					.map(item => item.file);
+
+				modal.close();
+				resolve(selectedFiles);
+			};
+
+			const cancelBtn = buttonContainer.createEl("button", { text: "Cancel" });
+			cancelBtn.onclick = () => {
+				modal.close();
+				resolve(null);
+			};
+
+			modal.open();
+		});
 	}
 
 	/**

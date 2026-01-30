@@ -1,5 +1,57 @@
 # Changelog: SmartWrite Publisher
 
+## [0.3.10] - 2026-01-30 (Feature - Enhanced Batch Publishing UI)
+
+### ✨ New Features
+
+- **File Selection Modal**: New interactive modal for selecting which files to publish
+    - **Checkboxes**: Each file has a checkbox for individual selection
+    - **Select All / Unselect All**: Toggle button to select/deselect all files at once
+    - **Default State**: All files are pre-checked by default
+    - **Confirm Button**: Explicit "CONFIRM" button to proceed with selected files only
+    - **Visual Design**: Clean, scrollable list with hover effects
+
+- **Improved Folder Selection**: Replaced dropdown with elegant input + browse system
+    - **Autocomplete Input**: Type to filter folders with datalist autocomplete
+    - **Browse Button**: Opens modal with clickable folder list
+    - **Manual Entry**: Allows typing folder path directly
+    - **Better UX**: More flexible and user-friendly than dropdown
+
+### 🎨 UI Improvements
+
+- **New Modals**:
+    - File selection modal with checkboxes and selection controls
+    - Folder browse modal with clickable folder list
+- **CSS Enhancements**:
+    - Styled input container with flex layout
+    - Interactive folder list with hover states
+    - Checkbox list with monospace font for file paths
+    - Responsive modal sizing
+
+### 🐛 Bug Fixes
+
+- **Edge Case Handling**: Fixed issue where empty folder path could cause errors
+- **Safety Check**: Added validation for empty folder selection
+
+### 📊 Implementation Details
+
+- **New Methods**:
+    - `showFileSelectionModal()` - Interactive file selection with checkboxes
+    - `showFolderBrowseModal()` - Folder browser with clickable list
+- **Updated Logic**:
+    - Batch publishing now processes only selected files
+    - Folder input supports autocomplete, manual entry, and browse
+
+### ✅ Status
+
+- ✅ Build: SUCCESS
+- ✅ Vault Sync: Obsidian v0.3.10
+- ✅ Backup: smartwrite-publisher-v0.3.10-*.tar.gz
+- ✅ Feature: Enhanced file selection fully functional
+- ✅ UX: Improved folder selection with multiple input methods
+
+---
+
 ## [0.3.9] - 2026-01-30 (Feature - Batch Publishing)
 
 ### ✨ New Features
