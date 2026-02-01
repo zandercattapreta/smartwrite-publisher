@@ -902,7 +902,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for:
 
 ## Version History
 
-**v0.3.11** (Current):
+**v1.0.0** (Current):
 
 - File sorting
 - Enhanced file selection

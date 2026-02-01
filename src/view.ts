@@ -1,3 +1,7 @@
+/**
+ * @file This file defines the main UI view for the SmartWrite Publisher plugin.
+ * @description Manages rendering of the plugin's sidebar, user interactions, and orchestrates publishing operations.
+ */
 import { ItemView, TFile, WorkspaceLeaf, Notice } from "obsidian";
 import SmartWritePublisher from "./main";
 import { SubstackService } from "./substack";
@@ -7,25 +11,46 @@ import { SETTINGS } from "./constants";
 
 export const VIEW_TYPE_PUBLISHER = "smartwrite-publisher-view";
 
+/**
+ * Main UI view for the SmartWrite Publisher plugin.
+ * Handles rendering the sidebar, displaying active note information, batch publishing controls,
+ * connection status, and system logs.
+ */
 export class PublisherView extends ItemView {
+	/** Reference to the main plugin instance. */
 	plugin: SmartWritePublisher;
+	/** The currently active Obsidian file in the workspace. */
 	activeFile: TFile | null = null;
+	/** Connection status to Substack. */
 	isConnected: boolean = false;
+	/** Flag to indicate if a publishing operation is currently in progress. */
 	isPublishing: boolean = false;
 
-	// Serviços
+	// Services
+	/** Service for interacting with the Substack API. */
 	substackService: SubstackService;
+	/** Converter for Markdown to HTML (and Tiptap JSON). */
 	converter: MarkdownConverter;
 
-	// Referências para elementos dinâmicos (otimização)
+	// References to dynamic UI elements for efficient updates
+	/** HTML element displaying the active note's name. */
 	noteNameEl: HTMLParagraphElement;
+	/** HTML element displaying the publishing status badge (e.g., "Pending", "Draft", "Published"). */
 	statusBadgeEl: HTMLSpanElement;
+	/** HTML element for the connection status dot (green/red). */
 	connectionDotEl: HTMLSpanElement;
+	/** Array of HTML buttons related to publishing actions (e.g., "Create draft", "Publish live"). */
 	publishBtns: HTMLButtonElement[] = [];
 
-	// Cache de pastas (v0.4.0 - Performance optimization)
+	// Folder cache for performance optimization in folder browsing
+	/** Cache for vault folders to improve performance of folder selection. */
 	private folderCache: FolderCache | null = null;
 
+	/**
+	 * Creates an instance of PublisherView.
+	 * @param leaf The workspace leaf that this view resides in.
+	 * @param plugin The main SmartWritePublisher plugin instance.
+	 */
 	constructor(leaf: WorkspaceLeaf, plugin: SmartWritePublisher) {
 		super(leaf);
 		this.plugin = plugin;
@@ -33,14 +58,26 @@ export class PublisherView extends ItemView {
 		this.converter = new MarkdownConverter();
 	}
 
+	/**
+	 * Returns the unique type of this view.
+	 * @returns The view type string.
+	 */
 	getViewType() {
 		return VIEW_TYPE_PUBLISHER;
 	}
 
+	/**
+	 * Returns the display name of this view, shown in the UI.
+	 * @returns The display text.
+	 */
 	getDisplayText() {
 		return "SmartWrite Publisher";
 	}
 
+	/**
+	 * Lifecycle method called when the view is opened.
+	 * Initializes connection status, configures the Substack service, and renders the UI.
+	 */
 	async onOpen() {
 		this.isConnected = this.plugin.connected;
 		this.configureService();
@@ -48,7 +85,8 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Configura o serviço Substack com as credenciais atuais
+	 * Configures the Substack service with the current plugin settings (cookies and URL).
+	 * This ensures the service uses up-to-date credentials for API calls.
 	 */
 	configureService() {
 		if (this.plugin.settings.cookies && this.plugin.settings.substackUrl) {
@@ -60,8 +98,10 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Get folders with caching (v0.4.0 - Performance optimization)
-	 * @param forceRefresh - Force cache refresh
+	 * Retrieves a list of all folders in the vault, utilizing a caching mechanism for performance.
+	 * Folders are sorted alphabetically. The cache is refreshed if 'forceRefresh' is true or if the cache TTL has expired.
+	 * @param forceRefresh If true, forces the cache to refresh immediately.
+	 * @returns An array of folder paths.
 	 */
 	private getFolders(forceRefresh = false): string[] {
 		const now = Date.now();
@@ -87,6 +127,11 @@ export class PublisherView extends ItemView {
 		return folders;
 	}
 
+	/**
+	 * Renders the entire UI of the SmartWrite Publisher sidebar.
+	 * This method constructs and populates all sections of the sidebar, including active note,
+	 * batch publishing controls, connection status, and system logs.
+	 */
 	render() {
 		const container = this.containerEl.children[1];
 		if (!container) return;
@@ -94,7 +139,7 @@ export class PublisherView extends ItemView {
 		container.empty();
 		container.addClass("smartwrite-publisher-sidebar");
 
-		// Header
+		// --- Header Section ---
 		const header = container.createDiv({ cls: "sidebar-header" });
 		const titleContainer = header.createDiv({ cls: "title-container" });
 		titleContainer.createEl("h4", { text: "SmartWrite Publisher" });
@@ -109,7 +154,7 @@ export class PublisherView extends ItemView {
 			new HelpModal(this.app).open();
 		};
 
-		// --- Section: Active Note ---
+		// --- Section: Active Note (Single File Publishing) ---
 		const activeNoteSection = container.createDiv({ cls: "publisher-section collapsible-section" });
 		const activeNoteHeader = activeNoteSection.createDiv({ cls: "section-header" });
 		const activeNoteToggle = activeNoteHeader.createEl("span", { cls: "collapse-icon", text: "▼" });
@@ -145,7 +190,7 @@ export class PublisherView extends ItemView {
 		const scheduleBtn = actionButtons.createEl("button", { text: "Schedule", attr: { disabled: "true" } });
 		scheduleBtn.title = "Coming soon";
 
-		// --- Section: Directory Publishing ---
+		// --- Section: Batch Publishing ---
 		const batchSection = container.createDiv({ cls: "publisher-section collapsible-section" });
 		const batchHeader = batchSection.createDiv({ cls: "section-header" });
 		const batchToggle = batchHeader.createEl("span", { cls: "collapse-icon", text: "▼" });
@@ -205,7 +250,7 @@ export class PublisherView extends ItemView {
 			await this.handleBatchPublish(selectedFolder);
 		};
 
-		// --- Section: Substack Connection ---
+		// --- Section: Substack Connection (Settings) ---
 		const settingsSection = container.createDiv({ cls: "publisher-section collapsible-section settings-section" });
 		const settingsHeader = settingsSection.createDiv({ cls: "section-header" });
 		const settingsToggle = settingsHeader.createEl("span", { cls: "collapse-icon", text: "▼" });
@@ -285,7 +330,9 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Renderiza os logs no console
+	 * Renders the log entries into the system logs console UI element.
+	 * Clears previous logs and appends new, formatted, and color-coded log entries.
+	 * @param logConsole The HTMLDivElement representing the log console where logs will be displayed.
 	 */
 	renderLogs(logConsole: HTMLDivElement) {
 		logConsole.empty();
@@ -305,7 +352,9 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Atualiza a nota ativa exibida
+	 * Updates the displayed active note in the UI.
+	 * If the note name element is already rendered, it updates its text content; otherwise, it triggers a full re-render.
+	 * @param file The TFile object representing the newly active Obsidian note.
 	 */
 	updateActiveNote(file: TFile) {
 		this.activeFile = file;
@@ -317,7 +366,8 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Testa a conexão com o Substack
+	 * Initiates a connection test to Substack, leveraging the plugin's main testConnection logic.
+	 * Updates the internal connection status and refreshes the UI's connection indicator and logs.
 	 */
 	async testConnection() {
 		this.configureService();
@@ -340,7 +390,8 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Atualiza o indicador de conexão
+	 * Updates the visual connection status indicator (dot) in the UI
+	 * to reflect the current `isConnected` state (green for connected, red for disconnected).
 	 */
 	updateConnectionStatus() {
 		if (this.connectionDotEl) {
@@ -349,7 +400,8 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Atualiza o console de logs
+	 * Refreshes the display of the system logs in the UI.
+	 * This method is called after new log entries are added or cleared.
 	 */
 	refreshLogs() {
 		const logConsole = this.containerEl.querySelector('.log-console') as HTMLDivElement | null;
@@ -359,7 +411,10 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Manipula a publicação de uma nota
+	 * Handles the publishing process for a single active note to Substack.
+	 * This includes reading content, converting Markdown, calling the Substack service,
+	 * and updating the UI with success or error feedback.
+	 * @param isDraft If true, publishes as a draft; otherwise, publishes live.
 	 */
 	async handlePublish(isDraft: boolean) {
 		if (!this.activeFile) {
@@ -434,7 +489,9 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Habilita/desabilita botões de publicação
+	 * Enables or disables the publish buttons in the UI.
+	 * This prevents multiple publishing actions while one is in progress.
+	 * @param disabled If true, buttons will be disabled; otherwise, enabled.
 	 */
 	setPublishButtonsState(disabled: boolean) {
 		for (const btn of this.publishBtns) {
@@ -447,8 +504,10 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Batch Publishing: Publica múltiplos drafts de uma pasta
-	 * v0.4.0 - Optimized with parallel processing (3x concurrency)
+	 * Handles the batch publishing process, allowing users to publish multiple notes as drafts from a selected folder.
+	 * This method orchestrates file filtering, interactive selection, parallel processing with rate limiting,
+	 * and displays a summary of results.
+	 * @param folderPath The path to the Obsidian folder containing the notes to be published.
 	 */
 	async handleBatchPublish(folderPath: string): Promise<void> {
 		if (!folderPath || folderPath === "Select a folder..." || folderPath === "") {
@@ -534,7 +593,9 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Modal de navegação de pastas (Browse)
+	 * Displays an interactive modal allowing the user to browse and select a folder from their vault.
+	 * @param folders A list of available folder paths to display in the modal.
+	 * @returns A promise that resolves with the path of the selected folder, or null if cancelled.
 	 */
 	async showFolderBrowseModal(folders: string[]): Promise<string | null> {
 		return new Promise((resolve) => {
@@ -581,7 +642,10 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Modal de seleção de arquivos com checkboxes
+	 * Displays an interactive modal for users to select specific files from a list using checkboxes.
+	 * Includes functionality for sorting files, and selecting/unselecting all files.
+	 * @param files An array of TFile objects representing the files available for selection.
+	 * @returns A promise that resolves with an array of selected TFile objects, or null if cancelled.
 	 */
 	async showFileSelectionModal(files: TFile[]): Promise<TFile[] | null> {
 		return new Promise((resolve) => {
@@ -713,7 +777,10 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Confirma batch publish com o usuário
+	 * Displays a confirmation modal to the user before initiating a batch publishing operation.
+	 * Provides a summary of the action and estimated time, asking for user confirmation.
+	 * @param fileCount The number of files selected for batch publishing.
+	 * @returns A promise that resolves to true if the user confirms, false otherwise.
 	 */
 	async confirmBatchPublish(fileCount: number): Promise<boolean> {
 		return new Promise((resolve) => {
@@ -761,7 +828,10 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Cria draft a partir de um arquivo
+	 * Processes a single Obsidian file to convert its content and publish it as a draft to Substack.
+	 * This method is primarily used within the batch publishing workflow.
+	 * @param file The TFile object representing the note to be published.
+	 * @returns A promise that resolves with an object indicating success, error message, and optionally the post URL.
 	 */
 	async createDraftFromFile(file: TFile): Promise<{ success: boolean; error?: string; postUrl?: string }> {
 		try {
@@ -794,7 +864,9 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Mostra resumo dos resultados do batch
+	 * Displays a modal summarizing the results of a batch publishing operation.
+	 * Shows counts for successful and failed publications, along with detailed results for each file.
+	 * @param results An array of objects, each containing file name, success status, and an optional error message.
 	 */
 	showBatchResults(results: Array<{ file: string; success: boolean; error?: string }>) {
 		const modal = new (require('obsidian').Modal)(this.app);
@@ -863,13 +935,18 @@ export class PublisherView extends ItemView {
 	}
 
 	/**
-	 * Sleep utility para delays entre requests
+	 * A utility function to pause execution for a specified number of milliseconds.
+	 * Primarily used to implement rate limiting between API requests during batch operations.
+	 * @param ms The number of milliseconds to sleep.
+	 * @returns A promise that resolves after the specified delay.
 	 */
 	sleep(ms: number): Promise<void> {
 		return new Promise(resolve => setTimeout(resolve, ms));
 	}
 
+	/**
+	 * Lifecycle method called when the view is closed.
+	 * Can be used for cleanup tasks if necessary.
+	 */
 	async onClose() {
-		// Cleanup if needed
-	}
 }

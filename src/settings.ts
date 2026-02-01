@@ -2,14 +2,27 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import SmartWritePublisher from "./main";
 import { HelpModal } from "./modal";
 
+/**
+ * Represents the settings tab for the SmartWrite Publisher plugin.
+ * Allows users to configure Substack connection details and test the connection.
+ */
 export class SmartWriteSettingTab extends PluginSettingTab {
 	plugin: SmartWritePublisher;
 
+	/**
+	 * Creates an instance of SmartWriteSettingTab.
+	 * @param app The Obsidian application instance.
+	 * @param plugin The SmartWritePublisher plugin instance.
+	 */
 	constructor(app: App, plugin: SmartWritePublisher) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
+	/**
+	 * Renders the settings UI for the plugin.
+	 * This method dynamically creates UI elements for configuring Substack cookies, URL, and connection testing.
+	 */
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();

@@ -950,7 +950,7 @@ Problem Publishing?
 ## Quick Reference: Most Common Fixes
 
 1. **Connection fails**: Get fresh cookie
-2. **Empty posts**: Update to v0.3.11
+2. **Empty posts**: Update to v1.0.0
 3. **No title**: Add H1 heading to note
 4. **Batch empty**: Select folder with .md files
 5. **Slow performance**: Close sidebar, clear logs

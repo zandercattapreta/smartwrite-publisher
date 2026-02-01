@@ -31,7 +31,7 @@ Yes! SmartWrite Publisher is open source and completely free under the MIT licen
 
 ### Which platforms are supported?
 
-**Current (v0.3.11)**:
+**Current (v1.0.0)**:
 
 - ✅ Substack (full support)
 
@@ -60,7 +60,7 @@ Yes! The plugin works with Obsidian Sync. Your configuration is stored in your v
 
 ### How do I install the plugin?
 
-**Current Method** (v0.3.11):
+**Current Method** (v1.0.0):
 
 1. Download from GitHub releases
 2. Extract to `.obsidian/plugins/smartwrite-publisher/`
@@ -338,7 +338,7 @@ This was a bug in earlier versions. **Fixed in v0.3.11**.
 
 If still happening:
 
-1. Update to v0.3.11
+1. Update to v1.0.0
 2. Ensure H1 heading exists
 3. Check System Logs for errors
 4. Report issue with example markdown

@@ -1,3 +1,7 @@
+/**
+ * @file This is the main plugin class for the Obsidian SmartWrite Publisher.
+ * @description Manages plugin lifecycle, settings, view registration, and core functionalities like connection testing.
+ */
 import { Notice, Plugin, WorkspaceLeaf } from 'obsidian';
 import { PublisherView, VIEW_TYPE_PUBLISHER } from "./view";
 import { SmartWriteSettingTab } from "./settings";
@@ -14,12 +18,20 @@ const DEFAULT_SETTINGS: SmartWriteSettings = {
 	substackUrl: ''
 }
 
+/**
+ * Main plugin class for SmartWrite Publisher.
+ * Manages the plugin's lifecycle, settings, view registration, commands, and core services.
+ */
 export default class SmartWritePublisher extends Plugin {
 	settings: SmartWriteSettings;
 	logger: Logger = new Logger();
 	substackService: SubstackService = new SubstackService(this.logger);
 	connected: boolean = false;
 
+	/**
+	 * Lifecycle method called when the plugin is loaded.
+	 * Initializes settings, registers views, commands, and event listeners.
+	 */
 	async onload() {
 		try {
 			await this.loadSettings();
@@ -57,7 +69,14 @@ export default class SmartWritePublisher extends Plugin {
 		}
 	}
 
-	// Utilitário de Debounce para otimização
+	/**
+	 * Creates a debounced function that delays invoking `func` until after `wait` milliseconds
+	 * have passed since the last time the debounced function was invoked.
+	 * Used to optimize frequent calls to functions like `updateActiveNote`.
+	 * @param func The function to debounce.
+	 * @param wait The number of milliseconds to delay.
+	 * @returns A new debounced function.
+	 */
 	debounce(func: (...args: unknown[]) => void, wait: number) {
 		let timeout: ReturnType<typeof setTimeout>;
 		return (...args: unknown[]) => {
@@ -66,6 +85,10 @@ export default class SmartWritePublisher extends Plugin {
 		};
 	}
 
+	/**
+	 * Updates the active note displayed in the PublisherView.
+	 * This method is typically called in response to an 'active-leaf-change' event, debounced.
+	 */
 	async updateActiveNote() {
 		const activeFile = this.app.workspace.getActiveFile();
 		const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER);
@@ -77,6 +100,10 @@ export default class SmartWritePublisher extends Plugin {
 		}
 	}
 
+	/**
+	 * Activates (opens or reveals) the PublisherView sidebar.
+	 * If the view is already open, it reveals it; otherwise, it creates a new one.
+	 */
 	async activateView() {
 		const { workspace } = this.app;
 
@@ -101,15 +128,26 @@ export default class SmartWritePublisher extends Plugin {
 		}
 	}
 
+	/**
+	 * Lifecycle method called when the plugin is unloaded.
+	 * Performs cleanup tasks, though views are typically unregistered automatically.
+	 */
 	onunload() {
-		// View will be automatically unregistered
 	}
 
+	/**
+	 * Loads the plugin settings from storage.
+	 * If no settings are found, default settings are applied.
+	 */
 	async loadSettings() {
 		const data = await this.loadData() as Partial<SmartWriteSettings> | undefined;
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, data || {});
 	}
 
+	/**
+	 * Saves the current plugin settings to storage.
+	 * Also reconfigures the Substack service with the updated connection details.
+	 */
 	async saveSettings() {
 		await this.saveData(this.settings);
 		this.substackService.configure({
@@ -118,6 +156,11 @@ export default class SmartWritePublisher extends Plugin {
 		});
 	}
 
+	/**
+	 * Tests the connection to the configured Substack publication using the provided cookie.
+	 * Displays notices to the user for feedback and updates the internal connection status.
+	 * @returns A promise that resolves to an object indicating success and potentially user information or an error.
+	 */
 	async testConnection() {
 		if (!this.settings.cookies || !this.settings.substackUrl) {
 			new Notice("Por favor, configure os cookies e a URL primeiro.");

@@ -1,6 +1,6 @@
 # SmartWrite Publisher - User Guide
 
-**Version**: 0.3.11 (Updated: January 30, 2026)
+**Version**: 1.0.0 (Updated: February 1, 2026)
 
 Welcome to SmartWrite Publisher! This comprehensive guide will help you get the most out of your multi-platform publishing workflow from Obsidian.
 
@@ -36,13 +36,13 @@ SmartWrite Publisher is an Obsidian plugin that allows you to publish your markd
 - **File Sorting**: Sort files alphabetically (A-Z or Z-A)
 - **Progress Tracking**: Real-time progress indicators during batch operations
 - **Results Dashboard**: Detailed success/failure summary after publishing
-- **Markdown Conversion**: Automatic conversion from Obsidian markdown to platform-compatible HTML
+- **Markdown Conversion**: Automatic conversion from Obsidian markdown to platform-compatible HTML (internally converting to Substack's Tiptap JSON format for robust content rendering)
 - **Error Handling**: Graceful error handling with detailed error messages
 - **Rate Limiting**: Automatic delays to prevent API rate limit issues
 
 ### Supported Platforms
 
-**Current (v0.3.11)**:
+**Current (v1.0.0)**:
 
 - ✅ Substack (full support)
 
@@ -503,7 +503,7 @@ Regular content here...
     - Content below title
 
 2. **Update plugin**:
-    - Are you on v0.3.11 or higher?
+    - Are you on v1.0.0 or higher?
     - Update to latest version
 
 3. **Report issue**:
@@ -733,7 +733,7 @@ Visit our [GitHub repository](https://github.com/zandercpzed/smartwrite-publishe
 
 See [CHANGELOG.md](../CHANGELOG.md) for complete version history.
 
-**Current Version**: 0.3.11
+**Current Version**: 1.0.0
 
 - File list sorting
 - Enhanced file selection UI
@@ -752,6 +752,6 @@ Built with ❤️ for the Obsidian community.
 
 ---
 
-**Last Updated**: January 30, 2026
+**Last Updated**: February 1, 2026
 **Document Version**: 1.0
-**Plugin Version**: 0.3.11
+**Plugin Version**: 1.0.0
