@@ -1,6 +1,6 @@
 # SmartWrite Publisher (Obsidian Plugin)
 
-**Current Version**: v0.4.0 (2026-02-01)
+**Current Version**: v1.0.0 (2026-02-01)
 
 Publishing automation for **Substack** (and soon multiple blogging platforms) directly from your Obsidian vault.
 

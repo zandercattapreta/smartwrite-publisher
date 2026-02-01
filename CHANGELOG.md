@@ -1,5 +1,14 @@
 # Changelog: SmartWrite Publisher
 
+## [1.0.0] - 2026-02-01 (Public Release - Repository Refactoring)
+
+### 🚀 Initial Public Release
+
+- **Official Release**: First version submitted to the Obsidian Community Plugin Repository.
+- **Repository Structure**: Converted from a submodule-based approach to a single, self-contained repository.
+- **Improved Maintainability**: Streamlined project structure for easier development and collaboration.
+- **Cleaned up build process**: Removed local development specific file copying from production build.
+
 ## [0.4.0] - 2026-01-30 (Major - Professional Release & Code Refactoring)
 
 ### 🎯 Major Refactoring
