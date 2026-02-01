@@ -57,7 +57,7 @@ const context = await esbuild.context({
 
 if (prod) {
 	await context.rebuild();
-	copyToObsidian();
+	// copyToObsidian(); // Commented out for production build
 	process.exit(0);
 } else {
 	await context.watch();
