@@ -1,12 +1,5 @@
-node_modules
-*.js
-!esbuild.config.mjs
-!version-bump.mjs
-main.js
-styles.css
-.DS_Store
-.obsidian
-dist
-build
-node_modules
-*.zip
+# Folders to ignore at the project root
+_ BKPs/
+_ docs/
+_ skills/
+_ test files/
