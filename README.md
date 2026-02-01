@@ -1,6 +1,6 @@
 # SmartWrite Publisher (Obsidian Plugin)
 
-**Current Version**: v0.3.11 (2026-01-30)
+**Current Version**: v0.4.0 (2026-02-01)
 
 Publishing automation for **Substack** (and soon multiple blogging platforms) directly from your Obsidian vault.
 
@@ -157,23 +157,17 @@ npm run build
 
 The automated build copies necessary files to your vault's plugin folder (as configured in `esbuild.config.mjs`).
 
-### Project Structure
+### Project Structure & Repository Refactoring
 
-```
-smartwrite-publisher/
-├── src/                    # Source code
-│   ├── main.ts            # Plugin entry point
-│   ├── services/          # Business logic
-│   ├── views/             # UI components
-│   └── utils/             # Utilities
-├── docs/                  # Documentation
-│   ├── USER_GUIDE.md
-│   ├── FAQ.md
-│   ├── TROUBLESHOOTING.md
-│   ├── API_DOCUMENTATION.md
-│   └── CONTRIBUTING.md
-└── _ docs/                # Planning documents
-```
+**Last Refactoring**: 2026-02-01
+
+This repository recently underwent a significant refactoring to simplify its structure and improve maintainability.
+
+- **Monorepo Structure**: The project is now a single, self-contained repository. The previous submodule-based approach has been eliminated.
+- **Source Code Location**: All source code, documentation, and project files for the `smartwrite-publisher` plugin are located directly within this repository.
+- **Ignored Directories**: Local development folders (`_ BKPs`, `_ docs`, `_ skills`, `_ test files`) and environment-specific configuration files (`.agent`, `.claude`) are now explicitly ignored by Git and will not be part of the repository.
+
+This change ensures that cloning the repository provides the full source code without requiring extra steps to initialize submodules.
 
 ### Contributing
 
