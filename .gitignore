@@ -3,3 +3,12 @@ _ BKPs/
 _ docs/
 _ skills/
 _ test files/
+
+# System and editor files
+.DS_Store
+
+# Obsidian configuration
+.obsidian/
+
+# Package manager files
+package-lock.json
