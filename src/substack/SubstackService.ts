@@ -1,6 +1,6 @@
 /**
  * SmartWrite Publisher - Substack Service (v0.3.0)
- * Refatoração completa com arquitetura limpa
+ * Complete refactoring with clean architecture
  */
 
 import { Logger } from '../logger';
@@ -35,15 +35,15 @@ export class SubstackService {
 	}
 
 	/**
-	 * Configurar o serviço com credenciais
+	 * Configure the service with credentials
 	 */
 	configure(config: ConnectionConfig): void {
 		this.cookie = this.normalizeCookie(config.cookie);
 		this.baseUrl = this.buildBaseUrl(config.substackUrl);
 
-		this.logger.log(`Configurado para: ${this.baseUrl}`, 'INFO');
+		this.logger.log(`Configured for: ${this.baseUrl}`, 'INFO');
 
-		// Inicializar componentes
+		// Initialize components
 		this.client = new SubstackClient(this.baseUrl, this.cookie, this.logger);
 		this.payloadBuilder = new PayloadBuilder(this.logger);
 		this.errorHandler = new ErrorHandler(this.logger);
@@ -51,37 +51,37 @@ export class SubstackService {
 	}
 
 	/**
-	 * Testar conexão e obter informações do usuário
+	 * Test connection and obtain user information
 	 */
 	async testConnection(): Promise<{ success: boolean; user?: SubstackUserInfo; error?: string }> {
 		if (!this.isConfigured()) {
-			return { success: false, error: 'Serviço não configurado' };
+			return { success: false, error: 'Service not configured' };
 		}
 
 		try {
-			// Tentar obter info do usuário
+			// Try to obtain user info
 			const response = await this.client!.get('/api/v1/user/self');
 
 			if (response.status === 200 && response.json) {
 				this.user = {
 					id: response.json.id || 0,
-					name: response.json.name || response.json.username || 'Usuário',
+					name: response.json.name || response.json.username || 'User',
 					email: response.json.email || '',
 					handle: response.json.handle
 				};
 
-				// Buscar ID da publicação
+				// Fetch publication ID
 				await this.getPublicationId();
 
 				return { success: true, user: this.user };
 			}
 
-			// Fallback: tentar /api/v1/publication
+			// Fallback: try /api/v1/publication
 			const pubResponse = await this.client!.get('/api/v1/publication');
 			if (pubResponse.status === 200 && pubResponse.json) {
 				this.user = {
-					id: 0, // Sem user ID
-					name: pubResponse.json.name || 'Publicador',
+					id: 0, // No user ID
+					name: pubResponse.json.name || 'Publisher',
 					email: '',
 					handle: undefined
 				};
@@ -91,10 +91,10 @@ export class SubstackService {
 				return { success: true, user: this.user };
 			}
 
-			// Nenhum endpoint funcionou
+			// No endpoint worked
 			const errorMsg = response.status === 403
-				? '403 Forbidden: Cookie expirado ou sem permissões'
-				: `Erro ${response.status}: ${response.text?.substring(0, 100)}`;
+				? '403 Forbidden: Cookie expired or insufficient permissions'
+				: `Error ${response.status}: ${response.text?.substring(0, 100)}`;
 
 			return { success: false, error: errorMsg };
 
@@ -104,7 +104,7 @@ export class SubstackService {
 	}
 
 	/**
-	 * Obter ID da publicação (com cache)
+	 * Get publication ID (with cache)
 	 */
 	async getPublicationId(): Promise<number | null> {
 		if (this.publicationId) {
@@ -115,7 +115,7 @@ export class SubstackService {
 			return null;
 		}
 
-		// Definir estratégias na ordem de preferência
+		// Define strategies in order of preference
 		const strategies = [
 			new PublicationEndpointStrategy(this.client, this.logger),
 			new ArchiveStrategy(this.client, this.logger),
@@ -170,7 +170,20 @@ export class SubstackService {
 				const data: DraftResponse = response.json;
 				const draftId = data.id || data.draft_id;
 
+				// DEBUGGING: Log word_count para verificar se conteúdo foi processado
+				const wordCount = data.word_count || 0;
 				this.logger.log(`Draft criado: ${draftId}`, 'INFO');
+				this.logger.log(`Word count: ${wordCount} (${wordCount === 0 ? 'VAZIO ❌' : 'OK ✓'})`, 'INFO');
+
+				// Se word_count = 0, logar campos testados
+				if (wordCount === 0) {
+					this.logger.log('⚠️ ATENÇÃO: Post criado mas word_count = 0', 'WARN');
+					this.logger.log('Campos enviados no payload:', 'INFO');
+					this.logger.log(`- bodyJson: ${typeof payload.bodyJson} (${typeof payload.bodyJson === 'string' ? payload.bodyJson.length + ' chars' : 'object'})`, 'INFO');
+					this.logger.log(`- body: ${payload.body ? payload.body.length + ' chars' : 'não enviado'}`, 'INFO');
+					this.logger.log(`- draft_body: ${payload.draft_body ? payload.draft_body.length + ' chars' : 'não enviado'}`, 'INFO');
+					this.logger.log(`- body_markdown: ${payload.body_markdown ? payload.body_markdown.length + ' chars' : 'não enviado'}`, 'INFO');
+				}
 
 				// Se não é apenas draft, tentar publicar
 				if (!options.isDraft && draftId) {

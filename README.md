@@ -1,68 +1,196 @@
 # SmartWrite Publisher (Obsidian Plugin)
 
-Automatizador de publicações para **Substack** diretamente do seu vault no Obsidian.md.
+**Current Version**: v0.3.11 (2026-01-30)
 
-## 🚀 O que ele faz
+Publishing automation for **Substack** (and soon multiple blogging platforms) directly from your Obsidian vault.
 
-- **Integração Nativa**: Funciona diretamente na Sidebar do Obsidian.
-- **Publicação Contextual**: Detecta automaticamente a nota ativa e permite publicá-la como Rascunho, Live ou Agendada.
-- **Gerenciamento de Ativos**: Converte Markdown do Obsidian para HTML compatível com o Substack.
-- **Hashtags Inteligentes**: Sugere tags baseadas no conteúdo e metadados da nota.
-- **Automação em Lote**: Publique diretórios inteiros de uma vez (Fase 3).
+## 🚀 What It Does
 
-## 🛠️ Instalação e Configuração
+### ✅ Current Features (v0.3.11)
 
-1. **Ative o Plugin**: Após instalar, clique no ícone de "Broadcast" na Ribbon lateral esquerda.
-2. **Configure sua Sessão**:
-    - Vá para a seção **Quick Settings** na Sidebar.
-    - Insira seu `substack.sid` (obtido via Cookies no browser).
-    - Insira a URL da sua publicação.
-3. **Teste a Conexão**: Clique em "Test Connection". Se o ponto ficar verde, você está pronto.
+- **Native Integration**: Works directly in Obsidian's sidebar
+- **Single Note Publishing**: Publish active note as Draft or Live
+- **Batch Publishing**: Select a folder and publish multiple files at once
+- **File Selection**: Choose which files to publish with interactive checkboxes
+- **Sorting & Filtering**: Sort files alphabetically (A-Z / Z-A)
+- **Smart Folder Selection**: Input with autocomplete + browse modal
+- **Progress Tracking**: Real-time progress indicators (1/10, 2/10...)
+- **Results Summary**: Detailed modal showing successes and failures
+- **Markdown Conversion**: Automatically converts Markdown to Substack-compatible HTML
+- **Error Handling**: Robust individual error handling in batch operations
+- **Rate Limiting**: Automatic delay between requests to prevent API blocking
 
-## 📦 Fases de Desenvolvimento
+## 🛠️ Installation & Setup
 
-Este projeto está sendo desenvolvido em fases:
+1. **Activate Plugin**: After installing, click the "Broadcast" icon in the left sidebar ribbon.
+2. **Configure Your Session**:
+    - Go to **Quick Settings** section in the sidebar
+    - Enter your `substack.sid` (obtained from browser cookies)
+    - Enter your publication URL
+3. **Test Connection**: Click "Test Connection". If the dot turns green, you're ready.
 
-- **v0.1.0**: ✅ Fundação, Sidebar e Conectividade.
-- **v0.2.0**: ✅ Publicação de Nota Ativa (Phase 2 - Hotfixes v0.2.6.6-v0.2.6.10).
-- **v0.3.x**: ✅ **Tiptap JSON Format** (29 jan 2026)
-  - v0.3.0: Arquitetura Refatorada com separação de responsabilidades
-    - Modular architecture com SubstackClient, PayloadBuilder, ErrorHandler, IdStrategy
-    - Fixed: Cookie headers, Content-Type, Duplicate endpoints
-  - v0.3.2: Tiptap JSON Implementation (Markdown → Tiptap JSON converter)
-    - Fixed: HTML literal rendering issue
-    - Converted: `draft_body` (string) → `bodyJson` (Tiptap JSON)
-    - Added: Type-safe validation for both string (legacy) and Tiptap formats
-    - Ready para publicação em lote (Phase 3 feature-ready)
+For detailed installation instructions, see [USER_GUIDE.md](./docs/USER_GUIDE.md).
 
-### Histórico de Versões
+## 📦 Development Phases
 
-| Versão | Data | Status | Descrição |
-|--------|------|--------|-----------|
-| 0.3.3 | 29/01/2026 | ✅ Estável | Parser bug fixes, correção de posts vazios |
-| 0.3.2 | 29/01/2026 | ✅ Estável | Tiptap JSON implementation, correção de validação de tipos |
-| 0.3.1 | 29/01/2026 | ✅ Estável | Hotfix na extração de título (H1 vs H2+) |
-| 0.3.0 | 29/01/2026 | ✅ Estável | Arquitetura modular, correção de bugs estruturais |
-| 0.2.6.10 | 29/01/2026 | 🔄 Hotfix | Última tentativa de hotfix antes refactoring |
-| 0.2.6.6-0.2.6.9 | 29/01/2026 | ❌ Ineficaz | Série de hotfixes que revelaram problemas arquiteturais |
-| 0.2.0 | 28/01/2026 | ✅ Estável | Publicação integrada ao Obsidian |
-| 0.1.0+ | 18/01/2026 | ✅ Foundational | Sidebar, conexão, logger |
+This project is being developed in phases:
 
-### Build e Deploy
+- **v0.1.0**: ✅ Foundation, Sidebar, and Connectivity
+- **v0.2.0**: ✅ Active Note Publishing (Phase 2 - Hotfixes v0.2.6.6-v0.2.6.10)
+- **v0.3.x**: ✅ **Tiptap JSON Format** (Jan 29, 2026)
+    - v0.3.0: Refactored Architecture with separation of concerns
+        - Modular architecture with SubstackClient, PayloadBuilder, ErrorHandler, IdStrategy
+        - Fixed: Cookie headers, Content-Type, Duplicate endpoints
+    - v0.3.2: Tiptap JSON Implementation (Markdown → Tiptap JSON converter)
+        - Fixed: HTML literal rendering issue
+        - Converted: `draft_body` (string) → `bodyJson` (Tiptap JSON)
+        - Added: Type-safe validation for both string (legacy) and Tiptap formats
+        - Ready for batch publishing (Phase 3 feature-ready)
 
-Para desenvolvedores:
+### Recent Version History
+
+| Version | Date       | Status     | Description                                          |
+| ------- | ---------- | ---------- | ---------------------------------------------------- |
+| 0.3.11  | 01/30/2026 | ✅ Current | File list sorting with clickable arrow (▲/▼)         |
+| 0.3.10  | 01/30/2026 | ✅ Stable  | Enhanced UI: file checkboxes, folder input + Browse  |
+| 0.3.9   | 01/30/2026 | ✅ Stable  | Batch publishing, progress indicators, results modal |
+| 0.3.8   | 01/30/2026 | ✅ Stable  | Fix: "Publish live" button now works                 |
+| 0.3.7   | 01/29/2026 | ✅ Stable  | UI i18n (English), redesign connection section       |
+| 0.3.6   | 01/29/2026 | ✅ Stable  | Collapsible sections, version badge                  |
+| 0.3.5   | 01/29/2026 | ✅ Stable  | Multiple content fields test (word_count debug)      |
+| 0.3.4   | 01/29/2026 | ✅ Stable  | Plain markdown format, empty posts investigation     |
+| 0.3.3   | 01/29/2026 | ✅ Stable  | Parser bug fixes, empty posts correction             |
+| 0.3.0   | 01/29/2026 | ✅ Stable  | Complete architecture refactoring                    |
+
+**See full history**: [CHANGELOG.md](./CHANGELOG.md)
+
+---
+
+## 🗺️ Roadmap
+
+### ✅ Phase v0.3.x - Batch Publishing & UI (COMPLETED)
+
+**Status**: ✅ Completed (2026-01-30)
+
+**Delivered**:
+
+- Publish live button fix
+- Batch publishing (multiple drafts from folder)
+- File selection with checkboxes
+- Select all/unselect all
+- Folder input with autocomplete + Browse
+- File list sorting (A-Z / Z-A)
+- Progress indicators and results summary
+
+**See**: [PHASE_SUMMARY_v0.3_BatchPublishing.md](./../\_ docs/PHASE_SUMMARY_v0.3_BatchPublishing.md)
+
+---
+
+### 🚀 Phase v0.4.0 - Professional Release (IN PROGRESS)
+
+**Status**: 🔄 In Progress (2026-01-30)
+**Priority**: High
+**Estimated Timeline**: 20-25 sessions (~6 weeks)
+
+**Vision**: Transform SmartWrite Publisher into a professional-grade multi-platform publishing tool
+
+**Components**:
+
+1. **✅ Official Documentation** (COMPLETED)
+    - Comprehensive USER_GUIDE.md
+    - FAQ.md with common questions
+    - TROUBLESHOOTING.md guide
+    - API_DOCUMENTATION.md for developers
+    - CONTRIBUTING.md for contributors
+
+2. **🔄 GUI Installer** (IN PROGRESS)
+    - Electron-based cross-platform installer
+    - Auto-detect Obsidian vaults
+    - One-click installation
+    - Windows, macOS, Linux support
+
+3. **📋 Code Refactoring** (PLANNED)
+    - Performance optimization
+    - Remove redundancies
+    - Enhanced error messages
+    - Loading states and animations
+
+4. **📋 Multi-Platform Publishing** (PLANNED)
+    - Medium adapter (Tier 1)
+    - WordPress adapter (Tier 1)
+    - Ghost adapter (Tier 1)
+    - Publish to multiple platforms simultaneously
+    - Platform-specific settings
+
+**See**: [PLAN_v0.4.0_Professional_Release.md](./../\_ docs/PLAN_v0.4.0_Professional_Release.md)
+
+---
+
+### 🔮 Phase v0.5.0 - Advanced Features (FUTURE)
+
+**Status**: 📋 Backlog
+**Priority**: Medium
+
+**Planned**:
+
+- Additional platforms (Dev.to, Hashnode, Blogger, Tumblr, LinkedIn)
+- Analytics dashboard (compare platform performance)
+- Content sync across platforms
+- A/B testing (different titles per platform)
+- Automated cross-posting rules
+- Platform templates
+- Image optimization per platform
+- Scheduling (if platforms support)
+
+**See**: [PLAN_v0.5.0_MultiPlatform.md](./../\_ docs/PLAN_v0.5.0_MultiPlatform.md)
+
+---
+
+## 🛠️ Build & Development
+
+For developers:
 
 ```bash
 npm install
 npm run build
 ```
 
-O build automático copia os arquivos necessários para a pasta de plugins do seu vault (conforme configurado no `esbuild.config.mjs`).
+The automated build copies necessary files to your vault's plugin folder (as configured in `esbuild.config.mjs`).
 
-## 📄 Licença
+### Project Structure
 
-Este projeto é licenciado sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para detalhes.
+```
+smartwrite-publisher/
+├── src/                    # Source code
+│   ├── main.ts            # Plugin entry point
+│   ├── services/          # Business logic
+│   ├── views/             # UI components
+│   └── utils/             # Utilities
+├── docs/                  # Documentation
+│   ├── USER_GUIDE.md
+│   ├── FAQ.md
+│   ├── TROUBLESHOOTING.md
+│   ├── API_DOCUMENTATION.md
+│   └── CONTRIBUTING.md
+└── _ docs/                # Planning documents
+```
+
+### Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for guidelines.
+
+## 📚 Documentation
+
+- **[User Guide](./docs/USER_GUIDE.md)** - Complete installation and usage guide
+- **[FAQ](./docs/FAQ.md)** - Frequently asked questions
+- **[Troubleshooting](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[API Documentation](./docs/API_DOCUMENTATION.md)** - Technical details for developers
+- **[Contributing](./docs/CONTRIBUTING.md)** - How to contribute to the project
+
+## 📄 License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-Desenvolvido por [Zander Catta Preta](https://github.com/zandercpzed/smartwrite-publisher).
+Developed by [Zander Catta Preta](https://github.com/zandercpzed/smartwrite-publisher).

@@ -1,6 +1,6 @@
 /**
  * Substack ID Strategy
- * Estratégias para obter o ID da publicação
+ * Strategies to obtain publication ID
  */
 
 import { SubstackClient } from './SubstackClient';
@@ -16,7 +16,7 @@ export abstract class IdStrategy {
 }
 
 /**
- * Estratégia 1: Usar endpoint /api/v1/publication
+ * Strategy 1: Use endpoint /api/v1/publication
  */
 export class PublicationEndpointStrategy extends IdStrategy {
 	name = 'Publication Endpoint';
@@ -41,7 +41,7 @@ export class PublicationEndpointStrategy extends IdStrategy {
 }
 
 /**
- * Estratégia 2: Usar endpoint /api/v1/archive
+ * Strategy 2: Use endpoint /api/v1/archive
  */
 export class ArchiveStrategy extends IdStrategy {
 	name = 'Archive Info';
@@ -61,7 +61,7 @@ export class ArchiveStrategy extends IdStrategy {
 				}
 			}
 
-			return { success: false, error: 'Nenhum post encontrado' };
+			return { success: false, error: 'No posts found' };
 		} catch (error: any) {
 			return { success: false, error: error.message };
 		}
@@ -69,7 +69,7 @@ export class ArchiveStrategy extends IdStrategy {
 }
 
 /**
- * Estratégia 3: Usar endpoint /api/v1/user/self
+ * Strategy 3: Use endpoint /api/v1/user/self
  */
 export class UserSelfStrategy extends IdStrategy {
 	name = 'User Self Info';
@@ -88,7 +88,7 @@ export class UserSelfStrategy extends IdStrategy {
 				}
 			}
 
-			return { success: false, error: 'Nenhuma publicação encontrada' };
+			return { success: false, error: 'No publication found' };
 		} catch (error: any) {
 			return { success: false, error: error.message };
 		}
@@ -96,7 +96,7 @@ export class UserSelfStrategy extends IdStrategy {
 }
 
 /**
- * Gerenciador de estratégias para obter ID
+ * Strategy manager to obtain ID
  */
 export class IdStrategyManager {
 	private logger: Logger;
@@ -106,28 +106,28 @@ export class IdStrategyManager {
 	}
 
 	/**
-	 * Tentar obter ID da publicação usando múltiplas estratégias
+	 * Try to obtain publication ID using multiple strategies
 	 */
 	async findPublicationId(strategies: IdStrategy[]): Promise<number | null> {
-		this.logger.log('Buscando ID da publicação...', 'INFO');
+		this.logger.log('Searching for publication ID...', 'INFO');
 
 		for (const strategy of strategies) {
 			try {
-				this.logger.log(`Tentando: ${strategy.name}`, 'INFO');
+				this.logger.log(`Trying: ${strategy.name}`, 'INFO');
 				const result = await strategy.execute();
 
 				if (result.success && result.id) {
-					this.logger.log(`ID encontrado via ${strategy.name}: ${result.id}`, 'INFO');
+					this.logger.log(`ID found via ${strategy.name}: ${result.id}`, 'INFO');
 					return result.id;
 				}
 
-				this.logger.log(`${strategy.name} falhou: ${result.error}`, 'INFO');
+				this.logger.log(`${strategy.name} failed: ${result.error}`, 'INFO');
 			} catch (error: any) {
-				this.logger.log(`${strategy.name} exceção: ${error.message}`, 'INFO');
+				this.logger.log(`${strategy.name} exception: ${error.message}`, 'INFO');
 			}
 		}
 
-		this.logger.log('Não foi possível encontrar o ID da publicação', 'ERROR');
+		this.logger.log('Could not find publication ID', 'ERROR');
 		return null;
 	}
 }

@@ -27,10 +27,22 @@ export class PayloadBuilder {
 		// Construir payload base (sempre obrigatório)
 		const payload: DraftPayload = {
 			draft_title: options.title.trim(),
-			bodyJson: options.bodyHtml, // Tiptap JSON format
+			bodyJson: options.bodyHtml, // Manter para compatibilidade
 			type: 'newsletter',
 			draft_bylines: []
 		};
+
+		// EXPERIMENTAL: Testar múltiplos campos de conteúdo
+		// Substack pode aceitar diferentes nomes de campo
+		const contentString = typeof options.bodyHtml === 'string' ? options.bodyHtml : JSON.stringify(options.bodyHtml);
+
+		payload.body = contentString;           // Tentativa 1: campo 'body'
+		payload.draft_body = contentString;      // Tentativa 2: campo 'draft_body'
+		payload.body_markdown = contentString;   // Tentativa 3: campo 'body_markdown'
+
+		// Log detalhado do conteúdo
+		this.logger.log(`Conteúdo preparado: ${contentString.length} chars`, 'INFO');
+		this.logger.log(`Primeiro 100 chars: ${contentString.substring(0, 100)}...`, 'INFO');
 
 		// Adicionar subtitle apenas se tiver valor
 		if (options.subtitle && options.subtitle.trim()) {
@@ -47,7 +59,7 @@ export class PayloadBuilder {
 			payload.draft_bylines = [];
 		}
 
-		this.logger.log(`Payload criado: ${Object.keys(payload).join(', ')}`, 'INFO');
+		this.logger.log(`Payload criado com campos: ${Object.keys(payload).join(', ')}`, 'INFO');
 
 		return payload;
 	}

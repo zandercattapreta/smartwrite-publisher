@@ -47,14 +47,16 @@ npm run release
 #### Versioning
 
 O script incrementa automaticamente o **patch version**:
+
 - `0.3.2` → `0.3.3`
 - `0.3.9` → `0.3.10`
 - etc.
 
 Para mudar **minor** ou **major**, editar manualmente `manifest.json`:
+
 ```json
 {
-  "version": "0.4.0"  // Major.minor.patch
+    "version": "0.4.0" // Major.minor.patch
 }
 ```
 
@@ -94,12 +96,12 @@ Committed: YES
 
 #### Tratamento de Erros
 
-| Erro | Solução |
-|------|---------|
-| Build failed | Executar `npm run build` para ver erros TypeScript |
-| Git user not configured | Configurar com `git config --global user.name "..."` |
-| Push failed | Commit foi criado localmente, fazer push depois |
-| Project structure invalid | Verificar pastas: src/, manifest.json, CHANGELOG.md |
+| Erro                      | Solução                                              |
+| ------------------------- | ---------------------------------------------------- |
+| Build failed              | Executar `npm run build` para ver erros TypeScript   |
+| Git user not configured   | Configurar com `git config --global user.name "..."` |
+| Push failed               | Commit foi criado localmente, fazer push depois      |
+| Project structure invalid | Verificar pastas: src/, manifest.json, CHANGELOG.md  |
 
 ## 📚 Documentação Relacionada
 

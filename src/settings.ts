@@ -14,14 +14,14 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "Configurações: SmartWrite Publisher" });
+		containerEl.createEl("h2", { text: "Settings: SmartWrite Publisher" });
 
 		new Setting(containerEl)
 			.setName("Substack cookies")
-			.setDesc("Insira o valor do cookie 'substack.sid'. Mantenha-o seguro.")
+			.setDesc("Enter the 'substack.sid' cookie value. Keep it safe.")
 			.addText((text) =>
 				text
-					.setPlaceholder("Colar substack.sid aqui...")
+					.setPlaceholder("Paste substack.sid here...")
 					.setValue(this.plugin.settings.cookies)
 					.onChange(async (value) => {
 						this.plugin.settings.cookies = value;
@@ -31,34 +31,34 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Substack URL")
-			.setDesc("A URL principal da sua publicação (ex: https://nome.substack.com).")
+			.setDesc("The main URL of your publication (e.g., https://yourname.substack.com).")
 			.addText((text) =>
 				text
-					.setPlaceholder("https://meu.substack.com")
+					.setPlaceholder("https://yourname.substack.com")
 					.setValue(this.plugin.settings.substackUrl)
 					.onChange(async (value) => {
 						this.plugin.settings.substackUrl = value;
 						await this.plugin.saveSettings();
-						this.plugin.testConnection(); // Tenta validar em background
+						this.plugin.testConnection(); // Try to validate in background
 					})
 			);
 
 		new Setting(containerEl)
-			.setName("Testar conexão")
-			.setDesc("Verifica se os cookies e a URL estão corretos.")
+			.setName("Test connection")
+			.setDesc("Verify if the cookies and URL are correct.")
 			.addButton((btn) =>
 				btn.setButtonText("Test connection").onClick(async () => {
 					await this.plugin.testConnection();
 				})
 			);
 
-		containerEl.createEl("h4", { text: "Ajuda e suporte" });
-		
+		containerEl.createEl("h4", { text: "Help and support" });
+
 		new Setting(containerEl)
-			.setName("Como conseguir os cookies?")
-			.setDesc("Clique no botão abaixo para ver o guia passo-a-passo.")
+			.setName("How to get the cookies?")
+			.setDesc("Click the button below to see the step-by-step guide.")
 			.addButton((btn) =>
-				btn.setButtonText("Abrir guia").onClick(() => {
+				btn.setButtonText("Open guide").onClick(() => {
 					new HelpModal(this.app).open();
 				})
 			);

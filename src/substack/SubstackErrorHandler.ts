@@ -36,52 +36,27 @@ export class ErrorHandler {
 
 		// HTTP 401 - Unauthorized
 		if (status === 401) {
-			return new SubstackError(
-				'Não autenticado (401)',
-				401,
-				false,
-				'Cookie inválido ou expirado. Atualize suas credenciais.'
-			);
+			return this.handle401Error();
 		}
 
 		// HTTP 403 - Forbidden
 		if (status === 403) {
-			return new SubstackError(
-				'Acesso negado (403)',
-				403,
-				true,
-				'Cookie expirado ou sem permissões. Tente novamente em alguns minutos.'
-			);
+			return this.handle403Error();
 		}
 
 		// HTTP 404 - Not Found
 		if (status === 404) {
-			return new SubstackError(
-				'Recurso não encontrado (404)',
-				404,
-				false,
-				'Endpoint ou publicação não encontrado. Verifique a URL.'
-			);
+			return this.handle404Error(context);
 		}
 
 		// HTTP 429 - Rate Limited
 		if (status === 429) {
-			return new SubstackError(
-				'Muitas requisições (429)',
-				429,
-				true,
-				'Você foi rate limitado. Aguarde alguns minutos antes de tentar novamente.'
-			);
+			return this.handle429Error();
 		}
 
 		// HTTP 500+ - Server Error
 		if (status >= 500) {
-			return new SubstackError(
-				`Erro no servidor Substack (${status})`,
-				status,
-				true,
-				'Tente novamente em alguns minutos.'
-			);
+			return this.handle5xxError(status);
 		}
 
 		// Erro genérico
@@ -90,6 +65,106 @@ export class ErrorHandler {
 			status,
 			true,
 			'Tente novamente'
+		);
+	}
+
+	/**
+	 * Enhanced 401 error with actionable steps
+	 */
+	private handle401Error(): SubstackError {
+		const message = 'Authentication failed. Your cookie may have expired.\n\n' +
+			'Please follow these steps:\n' +
+			'1. Open Substack in your browser\n' +
+			'2. Log in to your account\n' +
+			'3. Copy the new connect.sid cookie\n' +
+			'4. Update settings in SmartWrite Publisher';
+
+		return new SubstackError(
+			'Authentication Failed (401)',
+			401,
+			false,
+			message
+		);
+	}
+
+	/**
+	 * Enhanced 403 error with possible causes
+	 */
+	private handle403Error(): SubstackError {
+		const message = 'Access forbidden. Possible causes:\n\n' +
+			'• Cookie has expired (refresh in browser)\n' +
+			'• Insufficient permissions for this publication\n' +
+			'• Account not verified or suspended\n\n' +
+			'Try logging out and back in to Substack, then update your cookie.';
+
+		return new SubstackError(
+			'Access Forbidden (403)',
+			403,
+			true,
+			message
+		);
+	}
+
+	/**
+	 * Enhanced 404 error with context-aware suggestions
+	 */
+	private handle404Error(context: string): SubstackError {
+		let message: string;
+
+		if (context.includes('publication')) {
+			message = 'Publication not found. Please check:\n\n' +
+				'• URL format: https://yourname.substack.com\n' +
+				'• Spelling of your Substack name\n' +
+				'• Publication is active and not deleted\n\n' +
+				'Verify your URL in settings.';
+		} else {
+			message = 'Resource not found (404).\n\n' +
+				'Please check your Substack URL in settings.';
+		}
+
+		return new SubstackError(
+			'Not Found (404)',
+			404,
+			false,
+			message
+		);
+	}
+
+	/**
+	 * Enhanced 429 error with wait time guidance
+	 */
+	private handle429Error(): SubstackError {
+		const message = 'Rate limit exceeded. Substack is blocking too many requests.\n\n' +
+			'What to do:\n' +
+			'• Wait 5-10 minutes before trying again\n' +
+			'• Reduce batch publish size to smaller groups\n' +
+			'• Increase delay between posts (currently 1.5s)\n\n' +
+			'This is temporary and will resolve soon.';
+
+		return new SubstackError(
+			'Rate Limited (429)',
+			429,
+			true,
+			message
+		);
+	}
+
+	/**
+	 * Enhanced 5xx error with server status info
+	 */
+	private handle5xxError(status: number): SubstackError {
+		const message = 'Substack server error. This is not your fault.\n\n' +
+			'What to do:\n' +
+			'• Try again in a few minutes\n' +
+			'• Check https://status.substack.com for outages\n' +
+			'• Contact Substack support if the issue persists\n\n' +
+			'Your content is safe - nothing was lost.';
+
+		return new SubstackError(
+			`Server Error (${status})`,
+			status,
+			true,
+			message
 		);
 	}
 

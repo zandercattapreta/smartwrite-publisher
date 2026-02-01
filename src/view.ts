@@ -2,6 +2,8 @@ import { ItemView, TFile, WorkspaceLeaf, Notice } from "obsidian";
 import SmartWritePublisher from "./main";
 import { SubstackService } from "./substack";
 import { MarkdownConverter } from "./converter";
+import { FolderCache } from "./types";
+import { SETTINGS } from "./constants";
 
 export const VIEW_TYPE_PUBLISHER = "smartwrite-publisher-view";
 
@@ -20,6 +22,9 @@ export class PublisherView extends ItemView {
 	statusBadgeEl: HTMLSpanElement;
 	connectionDotEl: HTMLSpanElement;
 	publishBtns: HTMLButtonElement[] = [];
+
+	// Cache de pastas (v0.4.0 - Performance optimization)
+	private folderCache: FolderCache | null = null;
 
 	constructor(leaf: WorkspaceLeaf, plugin: SmartWritePublisher) {
 		super(leaf);
@@ -52,6 +57,34 @@ export class PublisherView extends ItemView {
 				substackUrl: this.plugin.settings.substackUrl
 			});
 		}
+	}
+
+	/**
+	 * Get folders with caching (v0.4.0 - Performance optimization)
+	 * @param forceRefresh - Force cache refresh
+	 */
+	private getFolders(forceRefresh = false): string[] {
+		const now = Date.now();
+
+		// Check if cache is valid
+		if (!forceRefresh && this.folderCache &&
+			(now - this.folderCache.lastUpdated) < this.folderCache.ttl) {
+			return this.folderCache.folders;
+		}
+
+		// Rebuild cache
+		const folders = this.app.vault.getAllLoadedFiles()
+			.filter(f => (f as any).children !== undefined)
+			.map(f => f.path)
+			.sort();
+
+		this.folderCache = {
+			folders,
+			lastUpdated: now,
+			ttl: SETTINGS.FOLDER_CACHE_TTL
+		};
+
+		return folders;
 	}
 
 	render() {
@@ -138,11 +171,8 @@ export class PublisherView extends ItemView {
 		const datalist = folderInputContainer.createEl("datalist");
 		datalist.id = "folder-list";
 
-		// Popula com pastas do vault
-		const folders = this.app.vault.getAllLoadedFiles()
-			.filter(f => (f as any).children !== undefined)
-			.map(f => f.path)
-			.sort();
+		// Get folders (with caching - v0.4.0)
+		const folders = this.getFolders();
 
 		for (const folder of folders) {
 			if (folder) {
@@ -418,6 +448,7 @@ export class PublisherView extends ItemView {
 
 	/**
 	 * Batch Publishing: Publica múltiplos drafts de uma pasta
+	 * v0.4.0 - Optimized with parallel processing (3x concurrency)
 	 */
 	async handleBatchPublish(folderPath: string): Promise<void> {
 		if (!folderPath || folderPath === "Select a folder..." || folderPath === "") {
@@ -446,41 +477,54 @@ export class PublisherView extends ItemView {
 			return;
 		}
 
-		// 3. Create drafts one by one
+		// 3. Process files in parallel batches (v0.4.0 optimization)
 		const results: Array<{ file: string; success: boolean; error?: string }> = [];
 		const totalFiles = selectedFiles.length;
+		const concurrency = SETTINGS.BATCH_CONCURRENCY; // 3 parallel operations
 
-		this.plugin.logger.log(`Starting batch publish: ${totalFiles} files`);
+		this.plugin.logger.log(`Starting batch publish: ${totalFiles} files (${concurrency}x concurrency)`);
 
-		for (let i = 0; i < selectedFiles.length; i++) {
-			const file = selectedFiles[i];
-			if (!file) continue;  // Safety check
+		// Process in batches
+		for (let i = 0; i < selectedFiles.length; i += concurrency) {
+			const batch = selectedFiles.slice(i, i + concurrency);
+			const batchNumber = Math.floor(i / concurrency) + 1;
+			const totalBatches = Math.ceil(selectedFiles.length / concurrency);
 
-			const progress = `(${i + 1}/${totalFiles})`;
+			this.plugin.logger.log(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} files)`);
 
-			new Notice(`Publishing ${progress}: ${file.basename}...`, 3000);
-			this.plugin.logger.log(`Batch ${progress}: ${file.basename}`);
+			// Process batch in parallel
+			const batchPromises = batch.map(async (file, batchIndex) => {
+				const globalIndex = i + batchIndex;
+				const progress = `(${globalIndex + 1}/${totalFiles})`;
 
-			try {
-				const result = await this.createDraftFromFile(file);
-				results.push({
-					file: file.basename,
-					success: result.success,
-					error: result.error
-				});
+				new Notice(`Publishing ${progress}: ${file.basename}...`, 3000);
+				this.plugin.logger.log(`Batch ${progress}: ${file.basename}`);
 
-				// Small delay to avoid rate limiting
-				if (i < selectedFiles.length - 1) {
-					await this.sleep(1500);
+				try {
+					const result = await this.createDraftFromFile(file);
+					return {
+						file: file.basename,
+						success: result.success,
+						error: result.error
+					};
+				} catch (error: any) {
+					const errorMsg = error?.message || String(error);
+					this.plugin.logger.log(`Batch error for ${file.basename}: ${errorMsg}`, 'ERROR');
+					return {
+						file: file.basename,
+						success: false,
+						error: errorMsg
+					};
 				}
-			} catch (error: any) {
-				const errorMsg = error?.message || String(error);
-				results.push({
-					file: file.basename,
-					success: false,
-					error: errorMsg
-				});
-				this.plugin.logger.log(`Batch error for ${file.basename}: ${errorMsg}`, 'ERROR');
+			});
+
+			// Wait for all files in batch to complete
+			const batchResults = await Promise.all(batchPromises);
+			results.push(...batchResults);
+
+			// Delay between batches (not between individual files)
+			if (i + concurrency < selectedFiles.length) {
+				await this.sleep(SETTINGS.BATCH_DELAY);
 			}
 		}
 
