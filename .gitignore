@@ -32,4 +32,15 @@ _ BKPs
 _ docs
 _ skills
 _ test files
-e
+
+# Legacy & Generated Files
+AUTOMATION_*.md
+DEBUG_*.md
+RELEASE_*.md
+VERSIONING_*.md
+*.backup.tar.gz
+src/*.backup.ts
+.release-history.json
+
+# Exclude project documentationm files
+AUTOMATION_5_STEPS.m
