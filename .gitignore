@@ -10,5 +10,9 @@ _ test files/
 # Obsidian configuration
 .obsidian/
 
+# Agent & AI configuration
+.agent/
+.claude/
+
 # Package manager files
 package-lock.json

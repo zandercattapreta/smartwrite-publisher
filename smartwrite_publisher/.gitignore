@@ -1,0 +1,46 @@
+# vscode
+.vscode
+
+# Intellij
+*.iml
+.idea
+
+# npm
+node_modules
+
+# Build output
+main.js
+
+# Exclude sourcemaps
+*.map
+
+# obsidian
+data.json
+.obsidian
+
+# System
+.DS_Store
+
+# Agents & AI
+.claude
+.agent
+
+# Backups & Private Folders
+.backups
+backups
+_ BKPs
+_ docs
+_ skills
+_ test files
+
+# Legacy & Generated Files
+AUTOMATION_*.md
+DEBUG_*.md
+RELEASE_*.md
+VERSIONING_*.md
+*.backup.tar.gz
+src/*.backup.ts
+.release-history.json
+
+# Exclude project documentationm files
+AUTOMATION_5_STEPS.m
