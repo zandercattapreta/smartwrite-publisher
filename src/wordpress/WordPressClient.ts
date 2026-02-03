@@ -89,14 +89,18 @@ export class WordPressClient {
   private async request(method: string, endpoint: string, body: any = null): Promise<any> {
     const url = `${this.url}/wp-json${endpoint}`;
     
-    // Basic Auth header: base64(username:app_password)
-    const credentials = btoa(`${this.username}:${this.appPassword}`);
-    
     const headers: Record<string, string> = {
-      'Authorization': `Basic ${credentials}`,
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     };
+
+    // Use Bearer token if username is empty or explicitly "token", otherwise use Basic Auth
+    if (!this.username || this.username.toLowerCase() === 'token' || this.username.toLowerCase() === 'bearer') {
+      headers['Authorization'] = `Bearer ${this.appPassword}`;
+    } else {
+      const credentials = btoa(`${this.username}:${this.appPassword}`);
+      headers['Authorization'] = `Basic ${credentials}`;
+    }
 
     try {
       this.logger.log(`[WordPress] ${method} ${url}`, 'INFO');

@@ -121,7 +121,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("WordPress Username")
-			.setDesc("Your WordPress username for API authentication.")
+			.setDesc("WordPress username. Set to 'token' if using a Personal Access Token.")
 			.addText((text) =>
 				text
 					.setPlaceholder("your_username")
@@ -133,8 +133,8 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("WordPress Application Password")
-			.setDesc("Your WordPress application password for API authentication. Create in User Profile > Application Passwords.")
+			.setName("WordPress App Password / Token")
+			.setDesc("Application Password (WP.org) or Personal Access Token (WP.com).")
 			.addText((text) =>
 				text
 					.setPlaceholder("Paste application password here...")
@@ -167,11 +167,20 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("How to get Medium token?")
-			.setDesc("Medium has restricted new tokens. You must email yourfriends@medium.com with your @username and request an 'Integration Token' for this plugin.")
+			.setDesc("Medium tokens are currently restricted. Email yourfriends@medium.com to request one.")
 			.addButton((btn) =>
 				btn.setButtonText("Copy Email").onClick(() => {
 					navigator.clipboard.writeText("yourfriends@medium.com");
 					new Notice("Email copied to clipboard!");
+				})
+			);
+
+		new Setting(containerEl)
+			.setName("WordPress.com: Still missing?")
+			.setDesc("If on a FREE plan, Application Passwords are blocked. Workaround: Create a 'Personal Access Token' in the [Developer Portal](https://developer.wordpress.org/rest-api/using-the-rest-api/authentication/#personal-access-tokens) and use it with username 'token'.")
+			.addButton((btn) =>
+				btn.setButtonText("Developer Portal").onClick(() => {
+					window.open("https://developer.wordpress.com/apps/");
 				})
 			);
 
