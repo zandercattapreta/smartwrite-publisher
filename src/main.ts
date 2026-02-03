@@ -1,21 +1,37 @@
-/**
- * @file This is the main plugin class for the Obsidian SmartWrite Publisher.
- * @description Manages plugin lifecycle, settings, view registration, and core functionalities like connection testing.
- */
-import { Notice, Plugin, WorkspaceLeaf } from 'obsidian';
+import { App, Notice, Plugin, WorkspaceLeaf, TFile } from 'obsidian';
 import { PublisherView, VIEW_TYPE_PUBLISHER } from "./view";
 import { SmartWriteSettingTab } from "./settings";
 import { Logger } from "./logger";
-import { SubstackService, type ConnectionConfig } from './substack/SubstackService';
+import { SubstackService } from './substack/SubstackService'; // Still needed for compatibility layer during transition
+import { PlatformManager } from './core/PlatformManager'; // New PlatformManager
+import { SubstackAdapter } from './substack/SubstackAdapter'; // New SubstackAdapter
+import { ConnectionConfig } from './substack/types'; // Substack-specific config type
+import { ConnectionTestResult, UserInfo } from './core/BlogPlatformAdapter'; // Common adapter types
+import { MediumAdapter } from './medium/MediumAdapter'; // New MediumAdapter
+import { WordPressAdapter } from './wordpress/WordPressAdapter'; // New WordPressAdapter
+
+export interface WordPressConfig {
+	url: string;
+	username: string;
+	appPassword: string;
+}
 
 export interface SmartWriteSettings {
 	cookies: string;
 	substackUrl: string;
+	mediumApiKey: string;
+	wordpressConfig: WordPressConfig;
 }
 
 const DEFAULT_SETTINGS: SmartWriteSettings = {
 	cookies: '',
-	substackUrl: ''
+	substackUrl: '',
+	mediumApiKey: '',
+	wordpressConfig: {
+		url: '',
+		username: '',
+		appPassword: ''
+	}
 }
 
 /**
@@ -25,8 +41,15 @@ const DEFAULT_SETTINGS: SmartWriteSettings = {
 export default class SmartWritePublisher extends Plugin {
 	settings: SmartWriteSettings;
 	logger: Logger = new Logger();
-	substackService: SubstackService = new SubstackService(this.logger);
-	connected: boolean = false;
+	// Old SubstackService is replaced by PlatformManager
+	// substackService: SubstackService = new SubstackService(this.logger);
+	platformManager: PlatformManager;
+	connected: boolean = false; // This will now reflect the status of the primary adapter (Substack)
+
+	constructor(app: App, manifest: any) {
+		super(app, manifest);
+		this.platformManager = new PlatformManager(this.logger); // Pass logger to PlatformManager
+	}
 
 	/**
 	 * Lifecycle method called when the plugin is loaded.
@@ -35,10 +58,49 @@ export default class SmartWritePublisher extends Plugin {
 	async onload() {
 		try {
 			await this.loadSettings();
-			this.substackService.configure({
-			cookie: this.settings.cookies,
-			substackUrl: this.settings.substackUrl
-		});
+
+			// Initialize and register Substack Adapter
+			const substackAdapter = new SubstackAdapter(this.logger);
+			this.platformManager.registerPlatform('substack', 'Substack', substackAdapter, {
+				credentials: {
+					cookie: this.settings.cookies,
+					substackUrl: this.settings.substackUrl
+				},
+				isEnabled: true // Substack is the primary platform
+			});
+			// Configure the adapter directly after registration
+			substackAdapter.configure({
+				cookie: this.settings.cookies,
+				substackUrl: this.settings.substackUrl
+			});
+
+			// Initialize and register Medium Adapter
+			const mediumAdapter = new MediumAdapter(this.logger);
+			this.platformManager.registerPlatform('medium', 'Medium', mediumAdapter, {
+				credentials: {
+					apiKey: this.settings.mediumApiKey
+				},
+				isEnabled: false // Medium is not primary, starts disabled
+			});
+			mediumAdapter.configure({
+				apiKey: this.settings.mediumApiKey
+			});
+
+			// Initialize and register WordPress Adapter
+			const wordpressAdapter = new WordPressAdapter(this.logger);
+			this.platformManager.registerPlatform('wordpress', 'WordPress', wordpressAdapter, {
+				credentials: {
+					url: this.settings.wordpressConfig.url,
+					username: this.settings.wordpressConfig.username,
+					appPassword: this.settings.wordpressConfig.appPassword
+				},
+				isEnabled: false // WordPress is not primary, starts disabled
+			});
+			wordpressAdapter.configure({
+				url: this.settings.wordpressConfig.url,
+				username: this.settings.wordpressConfig.username,
+				appPassword: this.settings.wordpressConfig.appPassword
+			});
 
 			this.addSettingTab(new SmartWriteSettingTab(this.app, this));
 
@@ -65,7 +127,8 @@ export default class SmartWritePublisher extends Plugin {
 				this.app.workspace.on('active-leaf-change', debouncedUpdate)
 			);
 		} catch (e) {
-			console.error("SmartWrite Publisher: Falha crítica no onload:", e);
+			console.error("SmartWrite Publisher: Critical failure in onload:", e); // Changed to English
+			this.logger.error("Critical failure during plugin onload", e);
 		}
 	}
 
@@ -146,52 +209,89 @@ export default class SmartWritePublisher extends Plugin {
 
 	/**
 	 * Saves the current plugin settings to storage.
-	 * Also reconfigures the Substack service with the updated connection details.
+	 * Also updates the configuration for all registered adapters via PlatformManager.
 	 */
 	async saveSettings() {
 		await this.saveData(this.settings);
-		this.substackService.configure({
-			cookie: this.settings.cookies,
-			substackUrl: this.settings.substackUrl
-		});
+
+		// Update Substack adapter configuration via PlatformManager
+		const substackPlatform = this.platformManager.getPlatform('substack');
+		if (substackPlatform) {
+			const config: ConnectionConfig = {
+				cookie: this.settings.cookies,
+				substackUrl: this.settings.substackUrl
+			};
+			this.platformManager.updatePlatformConfig('substack', { credentials: config });
+			substackPlatform.adapter.configure(config); // Configure adapter directly
+		}
+
+		// Update Medium adapter configuration via PlatformManager
+		const mediumPlatform = this.platformManager.getPlatform('medium');
+		if (mediumPlatform) {
+			const config = { apiKey: this.settings.mediumApiKey };
+			this.platformManager.updatePlatformConfig('medium', { credentials: config });
+			mediumPlatform.adapter.configure(config); // Configure adapter directly
+		}
+
+		// Update WordPress adapter configuration via PlatformManager
+		const wordpressPlatform = this.platformManager.getPlatform('wordpress');
+		if (wordpressPlatform) {
+			const config = {
+				url: this.settings.wordpressConfig.url,
+				username: this.settings.wordpressConfig.username,
+				appPassword: this.settings.wordpressConfig.appPassword
+			};
+			this.platformManager.updatePlatformConfig('wordpress', { credentials: config });
+			wordpressPlatform.adapter.configure(config); // Configure adapter directly
+		}
 	}
 
 	/**
 	 * Tests the connection to the configured Substack publication using the provided cookie.
 	 * Displays notices to the user for feedback and updates the internal connection status.
-	 * @returns A promise that resolves to an object indicating success and potentially user information or an error.
+	 * @returns A promise that resolves to a ConnectionTestResult.
 	 */
-	async testConnection() {
+	async testConnection(): Promise<ConnectionTestResult> {
 		if (!this.settings.cookies || !this.settings.substackUrl) {
-			new Notice("Por favor, configure os cookies e a URL primeiro.");
+			new Notice("Please configure cookies and URL first."); // Changed to English
 			this.connected = false;
-			return { success: false, error: "Configuração incompleta" };
+			return { success: false, error: "Incomplete configuration" };
 		}
 
-		const notice = new Notice("Testando conexão...", 0);
+		const notice = new Notice("Testing connection...", 0); // Changed to English
 		try {
-			const result = await this.substackService.testConnection();
+			// Test only the Substack platform
+			const results = await this.platformManager.testConnections('substack');
+			const result = results.get('substack');
+
+			if (!result) { // Should not happen if 'substack' is registered
+				throw new Error("Substack platform not found in PlatformManager.");
+			}
+
 			this.connected = result.success;
 
 			if (result.success && result.user) {
-				new Notice(`Conectado com sucesso como: ${result.user.name}`);
+				new Notice(`Successfully connected as: ${result.user.name}`); // Changed to English
 
-				// Notifica a view se ela estiver aberta
+				// Notify the view if it's open
 				this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER).forEach(leaf => {
 					if (leaf.view instanceof PublisherView) {
-						leaf.view.isConnected = true;
-						leaf.view.updateConnectionStatus();
+						leaf.view.isConnected = true; // Use the internal connected state from plugin
+						if (typeof (leaf.view as any).updateConnectionStatus === 'function') {
+							(leaf.view as any).updateConnectionStatus();
+						}
 					}
 				});
 
 				return result;
 			} else {
-				new Notice(result.error || "Falha na conexão.");
+				new Notice(result.error || "Connection failed."); // Changed to English
 				return result;
 			}
-		} catch (error) {
+		} catch (error: any) {
 			this.connected = false;
-			new Notice("Erro inesperado ao testar conexão.");
+			new Notice("Unexpected error while testing connection."); // Changed to English
+			this.logger.error("Unexpected error during connection test", error);
 			return { success: false, error: String(error) };
 		} finally {
 			notice.hide();

@@ -31,6 +31,18 @@ export class Logger {
 		else console.debug(consoleMsg, data);
 	}
 
+	info(message: string, data?: unknown) {
+		this.log(message, 'INFO', data);
+	}
+
+	warn(message: string, data?: unknown) {
+		this.log(message, 'WARN', data);
+	}
+
+	error(message: string, data?: unknown) {
+		this.log(message, 'ERROR', data);
+	}
+
 	getLogs(): LogEntry[] {
 		return this.logs;
 	}

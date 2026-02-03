@@ -92,11 +92,79 @@ export type LoadingId =
 // ==================== PLUGIN TYPES ====================
 
 /**
+ * Platform type identifier
+ */
+export type PlatformType = 'substack' | 'medium' | 'wordpress';
+
+/**
+ * Platform-specific credential storage
+ */
+export interface PlatformCredentials {
+	substack?: {
+		cookie: string;
+	};
+	medium?: {
+		integrationToken: string;
+	};
+	wordpress?: {
+		username: string;
+		applicationPassword: string;
+	};
+}
+
+/**
+ * Configuration for a single platform
+ */
+export interface PlatformConfig {
+	type: PlatformType;
+	url: string;
+	credentials: PlatformCredentials;
+}
+
+/**
+ * Frontmatter metadata extracted from markdown
+ */
+export interface FrontmatterData {
+	title?: string;
+	subtitle?: string;
+	description?: string;
+	tags?: string[] | string;
+	categories?: string | string[];
+	category?: string;
+	author?: string;
+	visibility?: string;
+	date?: string;
+	[key: string]: any; // Allow any additional fields
+}
+
+/**
+ * Platform capability flags
+ */
+export interface PlatformCapabilities {
+	supportsTags: boolean;
+	supportsCategories: boolean;
+	supportsScheduling: boolean;
+	supportsVisibility: boolean;
+	supportsMultipleAuthors: boolean;
+	supportsUpdate: boolean;
+	supportsDelete: boolean;
+	tagLimit?: number;
+}
+
+/**
  * Plugin settings
  */
 export interface PluginSettings {
-	cookies: string;
-	substackUrl: string;
+	// Legacy settings (deprecated, kept for migration)
+	cookies?: string;
+	substackUrl?: string;
+	
+	// New multi-platform settings
+	platforms: PlatformConfig[];
+	activePlatform: PlatformType;
+	defaultAuthor?: string;
+	defaultVisibility?: 'public' | 'private' | 'password';
+	autoExtractFrontmatter: boolean;
 }
 
 // ==================== CONVERSION TYPES ====================

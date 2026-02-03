@@ -1,6 +1,6 @@
 # SmartWrite Publisher - Frequently Asked Questions (FAQ)
 
-**Version**: 0.3.11 (Updated: January 30, 2026)
+**Version**: 1.0.0 (Updated: February 2, 2026)
 
 Quick answers to the most common questions about SmartWrite Publisher.
 
@@ -35,7 +35,7 @@ Yes! SmartWrite Publisher is open source and completely free under the MIT licen
 
 - ✅ Substack (full support)
 
-**Coming in v0.4.0**:
+**Coming in v1.1.0**:
 
 - 🔜 Medium
 - 🔜 WordPress

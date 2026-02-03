@@ -1,12 +1,12 @@
 # SmartWrite Publisher (Obsidian Plugin)
 
-**Current Version**: v1.0.0 (2026-02-01)
+**Current Version**: v1.0.0 (2026-02-02)
 
 Publishing automation for **Substack** (and soon multiple blogging platforms) directly from your Obsidian vault.
 
 ## 🚀 What It Does
 
-### ✅ Current Features (v0.3.11)
+### ✅ Current Features (v1.0.0)
 
 - **Native Integration**: Works directly in Obsidian's sidebar
 - **Single Note Publishing**: Publish active note as Draft or Live
@@ -86,9 +86,13 @@ This project is being developed in phases:
 
 ---
 
-### 🚀 Phase v0.4.0 - Professional Release (IN PROGRESS)
+**Current Version**: v1.1.0 (2026-02-02)
 
-**Status**: 🔄 In Progress (2026-01-30)
+Publishing automation for **Substack** (and soon multiple blogging platforms) directly from your Obsidian vault.
+
+### Version v1.2.0: Professional Release (IN PROGRESS)
+
+**Status**: In Progress (2026-02-02)
 **Priority**: High
 **Estimated Timeline**: 20-25 sessions (~6 weeks)
 
@@ -96,39 +100,39 @@ This project is being developed in phases:
 
 **Components**:
 
-1. **✅ Official Documentation** (COMPLETED)
+1.  **Official Documentation** (COMPLETED)
     - Comprehensive USER_GUIDE.md
     - FAQ.md with common questions
     - TROUBLESHOOTING.md guide
     - API_DOCUMENTATION.md for developers
     - CONTRIBUTING.md for contributors
 
-2. **🔄 GUI Installer** (IN PROGRESS)
+2.  **GUI Installer** (IN PROGRESS)
     - Electron-based cross-platform installer
     - Auto-detect Obsidian vaults
     - One-click installation
     - Windows, macOS, Linux support
 
-3. **📋 Code Refactoring** (PLANNED)
+3.  **Code Refactoring** (PLANNED)
     - Performance optimization
     - Remove redundancies
     - Enhanced error messages
     - Loading states and animations
 
-4. **📋 Multi-Platform Publishing** (PLANNED)
+4.  **Multi-Platform Publishing** (PLANNED)
     - Medium adapter (Tier 1)
     - WordPress adapter (Tier 1)
     - Ghost adapter (Tier 1)
     - Publish to multiple platforms simultaneously
     - Platform-specific settings
 
-**See**: [PLAN_v0.4.0_Professional_Release.md](./../\_ docs/PLAN_v0.4.0_Professional_Release.md)
+**See**: [PLAN_v1.2.0_Professional_Release.md](./../\_ docs/PLAN_v1.2.0_Professional_Release.md)
 
 ---
 
-### 🔮 Phase v0.5.0 - Advanced Features (FUTURE)
+### Version v1.3.0: Advanced Features (FUTURE)
 
-**Status**: 📋 Backlog
+**Status**: Backlog
 **Priority**: Medium
 
 **Planned**:
@@ -142,7 +146,7 @@ This project is being developed in phases:
 - Image optimization per platform
 - Scheduling (if platforms support)
 
-**See**: [PLAN_v0.5.0_MultiPlatform.md](./../\_ docs/PLAN_v0.5.0_MultiPlatform.md)
+**See**: [PLAN_v1.3.0_Advanced_Features.md](./../\_ docs/PLAN_v1.3.0_Advanced_Features.md)
 
 ---
 

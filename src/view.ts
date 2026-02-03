@@ -4,10 +4,11 @@
  */
 import { ItemView, TFile, WorkspaceLeaf, Notice } from "obsidian";
 import SmartWritePublisher from "./main";
-import { SubstackService } from "./substack";
 import { MarkdownConverter } from "./converter";
 import { FolderCache } from "./types";
 import { SETTINGS } from "./constants";
+import { UniversalPost, PublishOptions, ConnectionTestResult, UserInfo } from './core/BlogPlatformAdapter';
+import { PlatformManager } from './core/PlatformManager';
 
 export const VIEW_TYPE_PUBLISHER = "smartwrite-publisher-view";
 
@@ -27,8 +28,6 @@ export class PublisherView extends ItemView {
 	isPublishing: boolean = false;
 
 	// Services
-	/** Service for interacting with the Substack API. */
-	substackService: SubstackService;
 	/** Converter for Markdown to HTML (and Tiptap JSON). */
 	converter: MarkdownConverter;
 
@@ -37,8 +36,6 @@ export class PublisherView extends ItemView {
 	noteNameEl: HTMLParagraphElement;
 	/** HTML element displaying the publishing status badge (e.g., "Pending", "Draft", "Published"). */
 	statusBadgeEl: HTMLSpanElement;
-	/** HTML element for the connection status dot (green/red). */
-	connectionDotEl: HTMLSpanElement;
 	/** Array of HTML buttons related to publishing actions (e.g., "Create draft", "Publish live"). */
 	publishBtns: HTMLButtonElement[] = [];
 
@@ -54,7 +51,6 @@ export class PublisherView extends ItemView {
 	constructor(leaf: WorkspaceLeaf, plugin: SmartWritePublisher) {
 		super(leaf);
 		this.plugin = plugin;
-		this.substackService = plugin.substackService;
 		this.converter = new MarkdownConverter();
 	}
 
@@ -76,25 +72,11 @@ export class PublisherView extends ItemView {
 
 	/**
 	 * Lifecycle method called when the view is opened.
-	 * Initializes connection status, configures the Substack service, and renders the UI.
+	 * Initializes connection status, and renders the UI.
 	 */
 	async onOpen() {
 		this.isConnected = this.plugin.connected;
-		this.configureService();
 		this.render();
-	}
-
-	/**
-	 * Configures the Substack service with the current plugin settings (cookies and URL).
-	 * This ensures the service uses up-to-date credentials for API calls.
-	 */
-	configureService() {
-		if (this.plugin.settings.cookies && this.plugin.settings.substackUrl) {
-			this.substackService.configure({
-				cookie: this.plugin.settings.cookies,
-				substackUrl: this.plugin.settings.substackUrl
-			});
-		}
 	}
 
 	/**
@@ -250,46 +232,52 @@ export class PublisherView extends ItemView {
 			await this.handleBatchPublish(selectedFolder);
 		};
 
-		// --- Section: Substack Connection (Settings) ---
-		const settingsSection = container.createDiv({ cls: "publisher-section collapsible-section settings-section" });
-		const settingsHeader = settingsSection.createDiv({ cls: "section-header" });
-		const settingsToggle = settingsHeader.createEl("span", { cls: "collapse-icon", text: "▼" });
-		const settingsTitleContainer = settingsHeader.createDiv({ cls: "section-title-with-status" });
-		settingsTitleContainer.createEl("h5", { text: "Substack Connection" });
-		this.connectionDotEl = settingsTitleContainer.createSpan({ cls: `status-dot ${this.isConnected ? 'green' : 'red'}` });
-		const settingsContent = settingsSection.createDiv({ cls: "section-content" });
+		// --- Section: Platform Connections ---
+		const platformConnectionsSection = container.createDiv({ cls: "publisher-section collapsible-section settings-section" });
+		const platformConnectionsHeader = platformConnectionsSection.createDiv({ cls: "section-header" });
+		const platformConnectionsToggle = platformConnectionsHeader.createEl("span", { cls: "collapse-icon", text: "▼" });
+		platformConnectionsHeader.createEl("h5", { text: "Platform Connections" });
+		const platformConnectionsContent = platformConnectionsSection.createDiv({ cls: "section-content" });
 
-		settingsHeader.onclick = () => {
-			settingsContent.toggleClass("collapsed", !settingsContent.hasClass("collapsed"));
-			settingsToggle.textContent = settingsContent.hasClass("collapsed") ? "▶" : "▼";
+		platformConnectionsHeader.onclick = () => {
+			platformConnectionsContent.toggleClass("collapsed", !platformConnectionsContent.hasClass("collapsed"));
+			platformConnectionsToggle.textContent = platformConnectionsContent.hasClass("collapsed") ? "▶" : "▼";
 		};
 
-		// Cookie Secret
-		settingsContent.createEl("label", { text: "Cookie Secret", cls: "input-label" });
-		const cookieInput = settingsContent.createEl("input", {
-			attr: { type: "password", placeholder: "Paste your connect.sid cookie" }
-		});
-		cookieInput.value = this.plugin.settings.cookies;
-		cookieInput.onchange = async () => {
-			this.plugin.settings.cookies = cookieInput.value;
-			await this.plugin.saveSettings();
-			this.configureService();
-		};
+		// Display status for each registered platform
+		const platforms = this.plugin.platformManager.getAllPlatforms();
+		if (platforms.length === 0) {
+			platformConnectionsContent.createEl("p", { text: "No platforms registered.", cls: "empty-platform-list" });
+		} else {
+			platforms.forEach(p => {
+				const platformEntry = platformConnectionsContent.createDiv({ cls: "platform-entry" });
+				const status = p.adapter.getDetailedStatus();
 
-		// URL Substack
-		settingsContent.createEl("label", { text: "URL Substack", cls: "input-label" });
-		const urlInput = settingsContent.createEl("input", {
-			attr: { type: "text", placeholder: "https://yourname.substack.com" }
-		});
-		urlInput.value = this.plugin.settings.substackUrl;
-		urlInput.onchange = async () => {
-			this.plugin.settings.substackUrl = urlInput.value;
-			await this.plugin.saveSettings();
-			this.configureService();
-		};
+				const statusIndicator = platformEntry.createSpan({
+					cls: `status-dot ${status.isConnected ? 'green' : 'red'}`
+				});
+				statusIndicator.title = status.isConnected
+					? `Connected as ${status.user?.name || p.name} (${p.id})`
+					: `Disconnected from ${p.name} (${p.id})` + (status.error ? `: ${status.error}` : '');
 
-		const testBtn = settingsContent.createEl("button", { text: "Test connection" });
-		testBtn.onclick = () => this.testConnection();
+				platformEntry.createSpan({ text: p.name, cls: "platform-name" });
+				
+				// Add a test button for each platform
+				const testBtn = platformEntry.createEl("button", { text: "Test", cls: "platform-test-btn" });
+				testBtn.onclick = async () => {
+					new Notice(`Testing ${p.name} connection...`);
+					const result = await this.plugin.platformManager.testConnections(p.id);
+					const platformResult = result.get(p.id);
+					if (platformResult?.success) {
+						new Notice(`Successfully connected to ${p.name} as ${platformResult.user?.name || 'User'}.`);
+					} else {
+						new Notice(`Failed to connect to ${p.name}.` + (platformResult?.error ? ` Error: ${platformResult.error}` : ''));
+					}
+					// Re-render to update status dot
+					this.render();
+				};
+			});
+		}
 
 		// --- Section: System Logs ---
 		const logSection = container.createDiv({ cls: "publisher-section collapsible-section log-section" });
@@ -370,8 +358,6 @@ export class PublisherView extends ItemView {
 	 * Updates the internal connection status and refreshes the UI's connection indicator and logs.
 	 */
 	async testConnection() {
-		this.configureService();
-
 		try {
 			const result = await this.plugin.testConnection();
 
@@ -389,19 +375,27 @@ export class PublisherView extends ItemView {
 		}
 	}
 
+
+
 	/**
-	 * Updates the visual connection status indicator (dot) in the UI
-	 * to reflect the current `isConnected` state (green for connected, red for disconnected).
+	 * Updates the visible connection status in the sidebar.
+	 * Updates both the internal isConnected state and the visual indicator.
 	 */
 	updateConnectionStatus() {
-		if (this.connectionDotEl) {
-			this.connectionDotEl.className = `status-dot ${this.isConnected ? 'green' : 'red'}`;
+		this.isConnected = this.plugin.connected;
+		const container = this.containerEl.querySelector('.connection-status-container');
+		if (container) {
+			const dot = container.querySelector('.connection-dot');
+			const text = container.querySelector('.connection-text');
+			if (dot && text) {
+				dot.className = `connection-dot ${this.isConnected ? 'connected' : 'disconnected'}`;
+				text.textContent = this.isConnected ? 'Connected to Substack' : 'Disconnected';
+			}
 		}
 	}
 
 	/**
 	 * Refreshes the display of the system logs in the UI.
-	 * This method is called after new log entries are added or cleared.
 	 */
 	refreshLogs() {
 		const logConsole = this.containerEl.querySelector('.log-console') as HTMLDivElement | null;
@@ -412,7 +406,7 @@ export class PublisherView extends ItemView {
 
 	/**
 	 * Handles the publishing process for a single active note to Substack.
-	 * This includes reading content, converting Markdown, calling the Substack service,
+	 * This includes reading content, converting Markdown, calling the PlatformManager to publish,
 	 * and updating the UI with success or error feedback.
 	 * @param isDraft If true, publishes as a draft; otherwise, publishes live.
 	 */
@@ -422,8 +416,10 @@ export class PublisherView extends ItemView {
 			return;
 		}
 
-		if (!this.substackService.isConfigured()) {
-			new Notice("Please configure cookie and URL first.");
+		// Check if Substack adapter is configured and connected via PlatformManager
+		const substackPlatform = this.plugin.platformManager.getPlatform('substack');
+		if (!substackPlatform || !substackPlatform.adapter.getDetailedStatus().isConnected) {
+			new Notice("Please configure Substack cookie and URL first and ensure connection.");
 			return;
 		}
 
@@ -439,24 +435,29 @@ export class PublisherView extends ItemView {
 		const notice = new Notice(`${action}: ${this.activeFile.basename}...`, 0);
 
 		try {
-			// Lê o conteúdo da nota
+			// Read note content
 			const content = await this.app.vault.read(this.activeFile);
 
-			// Converte para HTML
+			// Convert Markdown to UniversalPost format
 			const converted = this.converter.convert(content, this.activeFile.basename);
-
-			const htmlLength = typeof converted.html === 'string'
-				? converted.html.length
-				: JSON.stringify(converted.html).length;
-			this.plugin.logger.log(`Convertido: ${converted.title} (${htmlLength} chars)`);
-
-			// Publica no Substack
-			const result = await this.substackService.publishPost({
+			const universalPost: UniversalPost = {
 				title: converted.title,
 				subtitle: converted.subtitle,
-				bodyHtml: converted.html,
-				isDraft: isDraft
-			});
+				content: content, // Original markdown content
+				contentHtml: typeof converted.html === 'string' ? converted.html : JSON.stringify(converted.html), // Converted HTML content
+			};
+
+			const publishOptions: PublishOptions = {
+				isDraft: isDraft,
+			};
+
+			// Publish using PlatformManager
+			const results = await this.plugin.platformManager.publishPost(universalPost, ['substack'], publishOptions);
+			const result = results.get('substack');
+
+			if (!result) { // Should not happen if 'substack' was requested
+				throw new Error("Substack publishing result not found.");
+			}
 
 			if (result.success) {
 				const successMsg = isDraft
@@ -468,13 +469,14 @@ export class PublisherView extends ItemView {
 					this.plugin.logger.log(`URL: ${result.postUrl}`);
 				}
 
-				// Atualiza badge de status
+				// Update status badge
 				if (this.statusBadgeEl) {
 					this.statusBadgeEl.textContent = isDraft ? "Draft" : "Published";
 					this.statusBadgeEl.className = `status-badge ${isDraft ? 'draft' : 'published'}`;
 				}
 			} else {
 				new Notice(`Error: ${result.error}`);
+				this.plugin.logger.log(`Error publishing to Substack: ${result.error}`, 'ERROR');
 			}
 		} catch (error: any) {
 			const errorMsg = error?.message || String(error);
@@ -515,8 +517,10 @@ export class PublisherView extends ItemView {
 			return;
 		}
 
-		if (!this.substackService.isConfigured()) {
-			new Notice("Please configure cookie and URL first.");
+		// Check if Substack adapter is configured and connected via PlatformManager
+		const substackPlatform = this.plugin.platformManager.getPlatform('substack');
+		if (!substackPlatform || !substackPlatform.adapter.getDetailedStatus().isConnected) {
+			new Notice("Please configure Substack cookie and URL first and ensure connection.");
 			return;
 		}
 
@@ -536,12 +540,14 @@ export class PublisherView extends ItemView {
 			return;
 		}
 
-		// 3. Process files in parallel batches (v0.4.0 optimization)
+		// 3. Process files in parallel batches
 		const results: Array<{ file: string; success: boolean; error?: string }> = [];
 		const totalFiles = selectedFiles.length;
-		const concurrency = SETTINGS.BATCH_CONCURRENCY; // 3 parallel operations
+		const concurrency = SETTINGS.BATCH_CONCURRENCY; // e.g., 3 parallel operations
 
 		this.plugin.logger.log(`Starting batch publish: ${totalFiles} files (${concurrency}x concurrency)`);
+
+		const publishOptions: PublishOptions = { isDraft: true }; // Always drafts for batch
 
 		// Process in batches
 		for (let i = 0; i < selectedFiles.length; i += concurrency) {
@@ -560,11 +566,28 @@ export class PublisherView extends ItemView {
 				this.plugin.logger.log(`Batch ${progress}: ${file.basename}`);
 
 				try {
-					const result = await this.createDraftFromFile(file);
+					// Read content and convert to UniversalPost
+					const content = await this.app.vault.read(file);
+					const converted = this.converter.convert(content, file.basename);
+					const universalPost: UniversalPost = {
+						title: converted.title,
+						subtitle: converted.subtitle,
+						content: content, // Original markdown content
+						contentHtml: typeof converted.html === 'string' ? converted.html : JSON.stringify(converted.html), // Converted HTML content
+					};
+
+					// Publish using PlatformManager (as draft)
+					const platformResults = await this.plugin.platformManager.publishPost(universalPost, ['substack'], publishOptions);
+					const substackResult = platformResults.get('substack');
+
+					if (!substackResult) {
+						throw new Error("Substack publishing result not found for batch item.");
+					}
+
 					return {
 						file: file.basename,
-						success: result.success,
-						error: result.error
+						success: substackResult.success,
+						error: substackResult.error
 					};
 				} catch (error: any) {
 					const errorMsg = error?.message || String(error);
@@ -827,41 +850,7 @@ export class PublisherView extends ItemView {
 		});
 	}
 
-	/**
-	 * Processes a single Obsidian file to convert its content and publish it as a draft to Substack.
-	 * This method is primarily used within the batch publishing workflow.
-	 * @param file The TFile object representing the note to be published.
-	 * @returns A promise that resolves with an object indicating success, error message, and optionally the post URL.
-	 */
-	async createDraftFromFile(file: TFile): Promise<{ success: boolean; error?: string; postUrl?: string }> {
-		try {
-			// Lê o conteúdo da nota
-			const content = await this.app.vault.read(file);
 
-			// Converte para HTML
-			const converted = this.converter.convert(content, file.basename);
-
-			// Publica no Substack como draft
-			const result = await this.substackService.publishPost({
-				title: converted.title,
-				subtitle: converted.subtitle,
-				bodyHtml: converted.html,
-				isDraft: true  // Sempre draft em batch
-			});
-
-			if (result.success) {
-				this.plugin.logger.log(`✓ Draft created: ${converted.title}`);
-				return { success: true, postUrl: result.postUrl };
-			} else {
-				this.plugin.logger.log(`✗ Failed: ${converted.title} - ${result.error}`, 'ERROR');
-				return { success: false, error: result.error };
-			}
-		} catch (error: any) {
-			const errorMsg = error?.message || String(error);
-			this.plugin.logger.log(`✗ Exception: ${file.basename} - ${errorMsg}`, 'ERROR');
-			return { success: false, error: errorMsg };
-		}
-	}
 
 	/**
 	 * Displays a modal summarizing the results of a batch publishing operation.
@@ -949,4 +938,5 @@ export class PublisherView extends ItemView {
 	 * Can be used for cleanup tasks if necessary.
 	 */
 	async onClose() {
+	}
 }

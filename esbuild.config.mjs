@@ -13,15 +13,26 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = (process.argv[2] === "production");
 
-const OBSIDIAN_PLUGIN_PATH = "/sessions/affectionate-lucid-euler/mnt/_ smartwriter-publisher/.obsidian/plugins/smartwrite-publisher";
+const OBSIDIAN_PLUGIN_PATH = "/Users/zander/Library/CloudStorage/GoogleDrive-zander.cattapreta@zedicoes.com/My Drive/_ programação/_ smartwrite_publisher/.obsidian/plugins/smartwrite-publisher";
 
 const copyToObsidian = () => {
+	// Create dist directory if it doesn't exist
+	const distPath = "dist";
+	if (!fs.existsSync(distPath)) {
+		fs.mkdirSync(distPath);
+	}
+
+	// Copy manifest.json and styles.css to dist for consistency with release assets
+	fs.copyFileSync("manifest.json", path.join(distPath, "manifest.json"));
+	fs.copyFileSync("styles.css", path.join(distPath, "styles.css"));
+
 	if (!fs.existsSync(OBSIDIAN_PLUGIN_PATH)) {
 		fs.mkdirSync(OBSIDIAN_PLUGIN_PATH, { recursive: true });
 	}
-	fs.copyFileSync("main.js", path.join(OBSIDIAN_PLUGIN_PATH, "main.js"));
-	fs.copyFileSync("manifest.json", path.join(OBSIDIAN_PLUGIN_PATH, "manifest.json"));
-	fs.copyFileSync("styles.css", path.join(OBSIDIAN_PLUGIN_PATH, "styles.css"));
+	// Copy from dist to Obsidian plugin path
+	fs.copyFileSync(path.join(distPath, "main.js"), path.join(OBSIDIAN_PLUGIN_PATH, "main.js"));
+	fs.copyFileSync(path.join(distPath, "manifest.json"), path.join(OBSIDIAN_PLUGIN_PATH, "manifest.json"));
+	fs.copyFileSync(path.join(distPath, "styles.css"), path.join(OBSIDIAN_PLUGIN_PATH, "styles.css"));
 	console.log("Plugin deployed to Obsidian.");
 };
 
@@ -51,7 +62,7 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
-	outfile: "main.js",
+	outfile: "dist/main.js", // Change output file to dist/main.js
 	minify: prod,
 });
 
