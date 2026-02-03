@@ -1,6 +1,6 @@
 # SmartWrite Publisher - User Guide
 
-**Version**: 1.0.0 (Updated: February 1, 2026)
+**Version**: 1.0.1 (Updated: February 2, 2026)
 
 Welcome to SmartWrite Publisher! This comprehensive guide will help you get the most out of your multi-platform publishing workflow from Obsidian.
 
@@ -42,11 +42,11 @@ SmartWrite Publisher is an Obsidian plugin that allows you to publish your markd
 
 ### Supported Platforms
 
-**Current (v1.0.0)**:
+**Current (v1.0.1)**:
 
 - ✅ Substack (full support)
 
-**Coming in v0.4.0**:
+**Coming in v1.2.0**:
 
 - 🔜 Medium
 - 🔜 WordPress
@@ -719,8 +719,11 @@ Visit our [GitHub repository](https://github.com/zandercpzed/smartwrite-publishe
 
 See [CHANGELOG.md](../CHANGELOG.md) for complete version history.
 
-**Current Version**: 1.0.0
+**Current Version**: 1.0.1
 
+- Core Infrastructure Refactoring (Phase 1)
+- Platform Manager & Detector
+- Enhanced Logging & Frontmatter Parsing
 - File list sorting
 - Enhanced file selection UI
 - Batch publishing
@@ -738,6 +741,6 @@ Built with ❤️ for the Obsidian community.
 
 ---
 
-**Last Updated**: February 1, 2026
-**Document Version**: 1.0
-**Plugin Version**: 1.0.0
+**Last Updated**: February 2, 2026
+**Document Version**: 1.1
+**Plugin Version**: 1.0.1

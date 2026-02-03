@@ -69,7 +69,7 @@ execute_release() {
   # 2️⃣ BACKUP
   echo -e "${MAGENTA}[2/6] Creating Backup${NC}"
   CURRENT_VERSION=$(jq -r '.version' manifest.json)
-  BACKUP_DIR=".backups"
+  BACKUP_DIR="_ BKP"
   mkdir -p "$BACKUP_DIR"
   BACKUP_FILE="$BACKUP_DIR/smartwrite-publisher-v${CURRENT_VERSION}-$(date +%Y%m%d_%H%M%S).tar.gz"
   tar -czf "$BACKUP_FILE" \

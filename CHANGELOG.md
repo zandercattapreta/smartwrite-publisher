@@ -1,5 +1,16 @@
 # Changelog: SmartWrite Publisher
 
+## [1.0.1] - 2026-02-02 (Feature - Core Infrastructure Refactoring)
+
+### 🏗️ Core Infrastructure Updates (Phase 1)
+
+- **Platform Manager**: Unified architecture to support multiple blogging platforms (Substack, Medium, WordPress).
+- **Platform Detection**: New `PlatformDetector` to automatically identify platforms from URLs.
+- **Enhanced Logging**: Centralized `Logger` with level-based methods (`info`, `warn`, `error`) for better diagnostics.
+- **Improved Frontmatter Parsing**: More robust extraction of tags, categories, and titles from Obsidian notes.
+- **Project Reorganization**: Moved backup location to `_ BKP/` for better visibility and management.
+- **Build System**: Updated `esbuild` and `release` scripts to support local test vault deployment.
+
 ## [1.0.0] - 2026-02-01 (Public Release - Repository Refactoring)
 
 ### 🚀 Initial Public Release

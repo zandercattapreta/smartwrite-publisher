@@ -1,6 +1,6 @@
 # SmartWrite Publisher (Obsidian Plugin)
 
-**Current Version**: v1.0.0 (2026-02-02)
+**Current Version**: v1.0.1 (2026-02-02)
 
 Publishing automation for **Substack** (and soon multiple blogging platforms) directly from your Obsidian vault.
 
@@ -49,18 +49,18 @@ This project is being developed in phases:
 
 ### Recent Version History
 
-| Version | Date       | Status     | Description                                          |
-| ------- | ---------- | ---------- | ---------------------------------------------------- |
-| 0.3.11  | 01/30/2026 | ✅ Current | File list sorting with clickable arrow (▲/▼)         |
-| 0.3.10  | 01/30/2026 | ✅ Stable  | Enhanced UI: file checkboxes, folder input + Browse  |
-| 0.3.9   | 01/30/2026 | ✅ Stable  | Batch publishing, progress indicators, results modal |
-| 0.3.8   | 01/30/2026 | ✅ Stable  | Fix: "Publish live" button now works                 |
-| 0.3.7   | 01/29/2026 | ✅ Stable  | UI i18n (English), redesign connection section       |
-| 0.3.6   | 01/29/2026 | ✅ Stable  | Collapsible sections, version badge                  |
-| 0.3.5   | 01/29/2026 | ✅ Stable  | Multiple content fields test (word_count debug)      |
-| 0.3.4   | 01/29/2026 | ✅ Stable  | Plain markdown format, empty posts investigation     |
-| 0.3.3   | 01/29/2026 | ✅ Stable  | Parser bug fixes, empty posts correction             |
-| 0.3.0   | 01/29/2026 | ✅ Stable  | Complete architecture refactoring                    |
+| 1.0.1 | 02/02/2026 | ✅ Current | Core Infrastructure Refactoring (Phase 1) |
+| 1.0.0 | 02/01/2026 | ✅ Stable | Initial Public Release & Repository Refactoring |
+| 0.3.11 | 01/30/2026 | ✅ Stable | File list sorting with clickable arrow (▲/▼) |
+| 0.3.10 | 01/30/2026 | ✅ Stable | Enhanced UI: file checkboxes, folder input + Browse |
+| 0.3.9 | 01/30/2026 | ✅ Stable | Batch publishing, progress indicators, results modal |
+| 0.3.8 | 01/30/2026 | ✅ Stable | Fix: "Publish live" button now works |
+| 0.3.7 | 01/29/2026 | ✅ Stable | UI i18n (English), redesign connection section |
+| 0.3.6 | 01/29/2026 | ✅ Stable | Collapsible sections, version badge |
+| 0.3.5 | 01/29/2026 | ✅ Stable | Multiple content fields test (word_count debug) |
+| 0.3.4 | 01/29/2026 | ✅ Stable | Plain markdown format, empty posts investigation |
+| 0.3.3 | 01/29/2026 | ✅ Stable | Parser bug fixes, empty posts correction |
+| 0.3.0 | 01/29/2026 | ✅ Stable | Complete architecture refactoring |
 
 **See full history**: [CHANGELOG.md](./CHANGELOG.md)
 
@@ -100,26 +100,32 @@ Publishing automation for **Substack** (and soon multiple blogging platforms) di
 
 **Components**:
 
-1.  **Official Documentation** (COMPLETED)
+1.  **Code Refactoring** (COMPLETED)
+    - Core infrastructure for multi-platform support
+    - Enhanced Logger and Frontmatter parser
+    - Refactored PlatformManager architecture
+    - Standardized release automation
+
+2.  **Official Documentation** (COMPLETED)
     - Comprehensive USER_GUIDE.md
     - FAQ.md with common questions
     - TROUBLESHOOTING.md guide
     - API_DOCUMENTATION.md for developers
     - CONTRIBUTING.md for contributors
 
-2.  **GUI Installer** (IN PROGRESS)
+3.  **GUI Installer** (IN PROGRESS)
     - Electron-based cross-platform installer
     - Auto-detect Obsidian vaults
     - One-click installation
     - Windows, macOS, Linux support
 
-3.  **Code Refactoring** (PLANNED)
+4.  **Code Refactoring** (PLANNED)
     - Performance optimization
     - Remove redundancies
     - Enhanced error messages
     - Loading states and animations
 
-4.  **Multi-Platform Publishing** (PLANNED)
+5.  **Multi-Platform Publishing** (PLANNED)
     - Medium adapter (Tier 1)
     - WordPress adapter (Tier 1)
     - Ghost adapter (Tier 1)

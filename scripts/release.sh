@@ -93,7 +93,7 @@ echo -e "${GREEN}✓ Documentation check completed${NC}\n"
 # STEP 6: Create backup
 # =============================================================================
 echo -e "${BLUE}[6/7] Creating backup...${NC}"
-BACKUP_DIR="$PROJECT_ROOT/.backups"
+BACKUP_DIR="$PROJECT_ROOT/_ BKP"
 mkdir -p "$BACKUP_DIR"
 BACKUP_FILE="$BACKUP_DIR/smartwrite-publisher-v${NEW_VERSION}-$(date +%Y%m%d_%H%M%S).tar.gz"
 

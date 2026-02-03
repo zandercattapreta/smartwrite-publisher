@@ -1,6 +1,6 @@
 # SmartWrite Publisher - Frequently Asked Questions (FAQ)
 
-**Version**: 1.0.0 (Updated: February 2, 2026)
+**Version**: 1.0.1 (Updated: February 2, 2026)
 
 Quick answers to the most common questions about SmartWrite Publisher.
 
@@ -31,11 +31,11 @@ Yes! SmartWrite Publisher is open source and completely free under the MIT licen
 
 ### Which platforms are supported?
 
-**Current (v1.0.0)**:
+**Current (v1.0.1)**:
 
 - ✅ Substack (full support)
 
-**Coming in v1.1.0**:
+**Coming in v1.2.0**:
 
 - 🔜 Medium
 - 🔜 WordPress
@@ -60,7 +60,7 @@ Yes! The plugin works with Obsidian Sync. Your configuration is stored in your v
 
 ### How do I install the plugin?
 
-**Current Method** (v1.0.0):
+**Current Method** (v1.0.1):
 
 1. Download from GitHub releases
 2. Extract to `.obsidian/plugins/smartwrite-publisher/`
@@ -583,6 +583,6 @@ Yes! MIT license allows:
 
 ---
 
-**Last Updated**: January 30, 2026
-**Document Version**: 1.0
-**Plugin Version**: 0.3.11
+**Last Updated**: February 2, 2026
+**Document Version**: 1.1
+**Plugin Version**: 1.0.1

@@ -1,6 +1,5 @@
 # Folders to ignore at the project root
-_ BKPs/
-
+_ BKP/
 _ skills/
 _ test files/
 
@@ -29,3 +28,4 @@ main.js
 # Backups
 .backups/
 backups/
+_ BKPs/
