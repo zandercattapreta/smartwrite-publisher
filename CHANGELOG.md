@@ -1,5 +1,32 @@
 # Changelog: SmartWrite Publisher
 
+## [1.1.0] - 2026-02-03 (Major - Multi-platform Support & UI Refactoring)
+
+### ✍️ Medium Integration (Phase 2-4)
+
+- **Medium Adapter**: Official API v1 integration for publishing drafts and live posts.
+- **Tag Support**: Automatic mapping of tags to Medium (limited to 5).
+- **Manual Token Guidance**: New UI help section explaining how to request Integration Tokens via email from Medium Support.
+- **Temporary Toggle**: Medium is temporarily disabled in the UI by default until tokens are obtained by users.
+
+### 🌐 WordPress Integration (Phase 3)
+
+- **WordPress Adapter**: REST API integration using Application Passwords.
+- **Gutenberg Compatibility**: Automatic conversion of Markdown to Gutenberg Paragraph Blocks for seamless rendering.
+- **Connection Test**: Integrated connection testing with real-time feedback.
+
+### 🎨 UI & UX Improvements (Phase 4)
+
+- **Sleek Sidebar Header**: New status badge in the header for cleaner global connection monitoring.
+- **Multi-platform Selector**: Checkbox-based selection with icons for Substack, Medium, and WordPress.
+- **Native Settings Migration**: Moved all platform credentials and URL settings to the main Obsidian Settings tab.
+- **Interactive Feedback**: Implemented visual "disabled" states and helpful notices for unimplemented features.
+
+### 🔧 Maintenance
+
+- **Version Alignment**: Synced `manifest.json` and `package.json` to v1.1.0.
+- **Documentation**: Updated `USER_GUIDE.md` and `API_DOCUMENTATION.md` with New Platform details.
+
 ## [1.0.1] - 2026-02-02 (Feature - Core Infrastructure Refactoring)
 
 ### 🏗️ Core Infrastructure Updates (Phase 1)

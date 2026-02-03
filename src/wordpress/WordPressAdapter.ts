@@ -14,6 +14,7 @@ import {
   UserInfo
 } from '../core/BlogPlatformAdapter';
 import { Logger } from '../logger';
+import { WordPressClient } from './WordPressClient';
 
 /**
  * WordPress-specific implementation of the BlogPlatformAdapter.
@@ -31,6 +32,7 @@ export class WordPressAdapter implements BlogPlatformAdapter {
     supportsDelete: true
   };
   private logger: Logger;
+  private client: WordPressClient | null = null;
   private isConfiguredInternal: boolean = false;
   private isConnectedInternal: boolean = false;
   private currentUser: UserInfo | null = null;
@@ -46,13 +48,19 @@ export class WordPressAdapter implements BlogPlatformAdapter {
 
   /**
    * Configures the adapter with WordPress connection details.
-   * @param config The connection configuration for WordPress (e.g., API URL, username, application password).
+   * @param config The connection configuration for WordPress (url, username, appPassword).
    */
   configure(config: any): void {
-    // Placeholder: In a real implementation, this would store and validate WordPress API credentials.
-    this.logger.log(`WordPressAdapter configured with: ${JSON.stringify(config)}`, 'INFO');
-    this.isConfiguredInternal = true;
-    this.isConnectedInternal = false; // Reset connection status on configure
+    if (config && config.url && config.username && config.appPassword) {
+      this.client = new WordPressClient(config.url, config.username, config.appPassword, this.logger);
+      this.isConfiguredInternal = true;
+      this.logger.log('WordPressAdapter configured.', 'INFO');
+    } else {
+      this.isConfiguredInternal = false;
+      this.logger.warn('WordPressAdapter configured with missing credentials.', 'WARN');
+    }
+    
+    this.isConnectedInternal = false;
     this.currentUser = null;
     this.lastConnectionError = undefined;
   }
@@ -63,7 +71,7 @@ export class WordPressAdapter implements BlogPlatformAdapter {
    * @returns A promise resolving to true if authentication is successful, false otherwise.
    */
   async authenticate(credentials: any): Promise<boolean> {
-    this.configure(credentials); // Configure with provided credentials
+    this.configure(credentials);
     const testResult = await this.testConnection();
     return testResult.success;
   }
@@ -75,9 +83,39 @@ export class WordPressAdapter implements BlogPlatformAdapter {
    * @returns A promise resolving to a PublishResult.
    */
   async publish(post: UniversalPost, options: PublishOptions): Promise<PublishResult> {
+    if (!this.isConnectedInternal || !this.currentUser || !this.client) {
+      return { success: false, error: 'WordPress adapter not connected or configured.' };
+    }
+
     this.logger.log(`WordPressAdapter: Attempting to publish "${post.title}" (isDraft: ${options.isDraft})`, 'INFO');
-    // Placeholder: Implement actual WordPress REST API call to publish post
-    return { success: false, error: 'WordPress publishing not yet implemented.' };
+
+    try {
+      const status = options.isDraft ? 'draft' : 'publish';
+      
+      // Convert Markdown to Gutenberg Blocks
+      const contentWithBlocks = this.convertToGutenberg(post.content);
+
+      const response = await this.client.createPost({
+        title: post.title,
+        content: contentWithBlocks,
+        status: status,
+        // categories: post.categories, // To be implemented (needs mapping names to IDs)
+        // tags: post.tags              // To be implemented (needs mapping names to IDs)
+      });
+
+      if (response && response.id) {
+        return {
+          success: true,
+          postId: String(response.id),
+          postUrl: response.link,
+          platformResponse: response
+        };
+      } else {
+        return { success: false, error: 'Failed to create post on WordPress.' };
+      }
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Unknown error during WordPress publish.' };
+    }
   }
 
   /**
@@ -86,9 +124,14 @@ export class WordPressAdapter implements BlogPlatformAdapter {
    * @returns A promise resolving to a DraftResult.
    */
   async createDraft(post: UniversalPost): Promise<DraftResult> {
-    this.logger.log(`WordPressAdapter: Attempting to create draft "${post.title}"`, 'INFO');
-    // Placeholder: Implement actual WordPress REST API call to create draft
-    return { success: false, error: 'WordPress draft creation not yet implemented.' };
+    const result = await this.publish(post, { isDraft: true });
+    return {
+      success: result.success,
+      error: result.error,
+      draftId: Number(result.postId),
+      draftUrl: result.postUrl,
+      platformResponse: result.platformResponse
+    };
   }
 
   /**
@@ -96,36 +139,31 @@ export class WordPressAdapter implements BlogPlatformAdapter {
    * @returns A promise resolving to a ConnectionTestResult.
    */
   async testConnection(): Promise<ConnectionTestResult> {
+    if (!this.client || !this.isConfiguredInternal) {
+      return { success: false, error: 'WordPress adapter not configured.' };
+    }
+
     this.logger.log('WordPressAdapter: Testing connection...', 'INFO');
-    // Placeholder: Implement actual WordPress REST API call to test connection
+    
     try {
-      // Simulate API call
-      // const response = await this.client.get('/wp-json/wp/v2/users/me');
-      // if (response.status === 200) {
-      //   this.currentUser = { id: response.json.id, name: response.json.name };
-      //   this.isConnectedInternal = true;
-      //   return { success: true, user: this.currentUser };
-      // } else {
-      //   this.lastConnectionError = `WordPress API error: ${response.status}`;
-      //   this.isConnectedInternal = false;
-      //   return { success: false, error: this.lastConnectionError };
-      // }
-      
-      // For now, assume success if configured
-      if (this.isConfiguredInternal) {
-        this.currentUser = { id: 'wp-user-456', name: 'Placeholder WordPress User' };
+      const me = await this.client.getMe();
+      if (me) {
+        this.currentUser = {
+          id: me.id,
+          name: me.name,
+          handle: me.slug
+        };
         this.isConnectedInternal = true;
         return { success: true, user: this.currentUser };
       } else {
-        this.lastConnectionError = 'WordPressAdapter not configured.';
         this.isConnectedInternal = false;
+        this.lastConnectionError = 'Failed to verify WordPress authentication. Check URL, Username, and App Password.';
         return { success: false, error: this.lastConnectionError };
       }
-
     } catch (error: any) {
-      this.lastConnectionError = `WordPress connection failed: ${error.message}`;
       this.isConnectedInternal = false;
-      return { success: false, error: this.lastConnectionError };
+      this.lastConnectionError = error.message;
+      return { success: false, error: error.message };
     }
   }
 
@@ -140,5 +178,17 @@ export class WordPressAdapter implements BlogPlatformAdapter {
       user: this.currentUser || undefined,
       error: this.lastConnectionError
     };
+  }
+
+  /**
+   * Simple conversion from Markdown to Gutenberg-style blocks.
+   * For now, it wraps the entire content in a paragraph block as a fallback,
+   * but ideally it should parse markdown and wrap each element.
+   * @param content Markdown content
+   */
+  private convertToGutenberg(content: string): string {
+    // Split by double newlines to create paragraph blocks
+    const paragraphs = content.split(/\n\s*\n/);
+    return paragraphs.map(p => `<!-- wp:paragraph -->\n<p>${p}</p>\n<!-- /wp:paragraph -->`).join('\n\n');
   }
 }

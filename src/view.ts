@@ -22,10 +22,12 @@ export class PublisherView extends ItemView {
 	plugin: SmartWritePublisher;
 	/** The currently active Obsidian file in the workspace. */
 	activeFile: TFile | null = null;
-	/** Connection status to Substack. */
+	/** Connection status for all platforms. */
 	isConnected: boolean = false;
 	/** Flag to indicate if a publishing operation is currently in progress. */
 	isPublishing: boolean = false;
+	/** Set of currently selected platform IDs for publishing. */
+	selectedPlatforms: Set<string> = new Set(['substack']);
 
 	// Services
 	/** Converter for Markdown to HTML (and Tiptap JSON). */
@@ -120,12 +122,24 @@ export class PublisherView extends ItemView {
 
 		container.empty();
 		container.addClass("smartwrite-publisher-sidebar");
-
+		
 		// --- Header Section ---
 		const header = container.createDiv({ cls: "sidebar-header" });
 		const titleContainer = header.createDiv({ cls: "title-container" });
 		titleContainer.createEl("h4", { text: "SmartWrite Publisher" });
 		titleContainer.createEl("span", { text: `v${this.plugin.manifest.version}`, cls: "version-badge" });
+
+		// Connection status indicator in header
+		const statusContainer = header.createDiv({ cls: "connection-status-container" });
+		const statusDot = statusContainer.createSpan({ 
+			cls: `connection-dot ${this.plugin.connected ? 'connected' : 'disconnected'}` 
+		});
+		const statusText = statusContainer.createSpan({ 
+			text: this.plugin.connected ? 'Connected' : 'Disconnected',
+			cls: "connection-text"
+		});
+		statusContainer.title = "Connection Status (configure in settings)";
+
 		const helpBtn = header.createEl("button", {
 			cls: "clickable-icon help-icon",
 			attr: { "aria-label": "How to use" }
@@ -135,6 +149,60 @@ export class PublisherView extends ItemView {
 			const { HelpModal } = require("./modal");
 			new HelpModal(this.app).open();
 		};
+
+		// --- Section: Target Platforms (Phase 4) ---
+		const platformSection = container.createDiv({ cls: "publisher-section platform-selection-section" });
+		platformSection.createEl("h5", { text: "Publish to Platforms" });
+		const platformList = platformSection.createDiv({ cls: "platform-checkbox-list" });
+
+		this.plugin.platformManager.getAllPlatforms().forEach(p => {
+			const platformRow = platformList.createDiv({ cls: "platform-checkbox-row" });
+			const status = p.adapter.getDetailedStatus();
+			
+			const checkbox = platformRow.createEl("input", { 
+				type: "checkbox",
+				attr: { id: `platform-check-${p.id}` }
+			});
+			checkbox.checked = this.selectedPlatforms.has(p.id);
+			
+			const isImplemented = p.id === 'substack' || p.id === 'wordpress';
+			if (!isImplemented) {
+				platformRow.addClass("is-disabled");
+				checkbox.disabled = true;
+				checkbox.checked = false;
+				this.selectedPlatforms.delete(p.id);
+			}
+			
+			checkbox.onchange = () => {
+				if (!isImplemented) {
+					checkbox.checked = false;
+					new Notice(`${p.name} integration is coming soon!`);
+					return;
+				}
+				if (checkbox.checked) {
+					this.selectedPlatforms.add(p.id);
+				} else {
+					this.selectedPlatforms.delete(p.id);
+				}
+				this.updateNoteView(); // Refresh UI if needed
+			};
+
+			const platformIcons: Record<string, string> = {
+				'substack': '📰',
+				'medium': '✍️',
+				'wordpress': '🌐'
+			};
+
+			const label = platformRow.createEl("label", { 
+				text: `${platformIcons[p.id] || '📄'} ${p.name}`,
+				attr: { for: `platform-check-${p.id}` }
+			});
+
+			const statusIndicator = platformRow.createSpan({
+				cls: `status-dot ${status.isConnected ? 'green' : 'red'}`
+			});
+			statusIndicator.title = status.isConnected ? "Connected" : "Disconnected";
+		});
 
 		// --- Section: Active Note (Single File Publishing) ---
 		const activeNoteSection = container.createDiv({ cls: "publisher-section collapsible-section" });
@@ -232,52 +300,6 @@ export class PublisherView extends ItemView {
 			await this.handleBatchPublish(selectedFolder);
 		};
 
-		// --- Section: Platform Connections ---
-		const platformConnectionsSection = container.createDiv({ cls: "publisher-section collapsible-section settings-section" });
-		const platformConnectionsHeader = platformConnectionsSection.createDiv({ cls: "section-header" });
-		const platformConnectionsToggle = platformConnectionsHeader.createEl("span", { cls: "collapse-icon", text: "▼" });
-		platformConnectionsHeader.createEl("h5", { text: "Platform Connections" });
-		const platformConnectionsContent = platformConnectionsSection.createDiv({ cls: "section-content" });
-
-		platformConnectionsHeader.onclick = () => {
-			platformConnectionsContent.toggleClass("collapsed", !platformConnectionsContent.hasClass("collapsed"));
-			platformConnectionsToggle.textContent = platformConnectionsContent.hasClass("collapsed") ? "▶" : "▼";
-		};
-
-		// Display status for each registered platform
-		const platforms = this.plugin.platformManager.getAllPlatforms();
-		if (platforms.length === 0) {
-			platformConnectionsContent.createEl("p", { text: "No platforms registered.", cls: "empty-platform-list" });
-		} else {
-			platforms.forEach(p => {
-				const platformEntry = platformConnectionsContent.createDiv({ cls: "platform-entry" });
-				const status = p.adapter.getDetailedStatus();
-
-				const statusIndicator = platformEntry.createSpan({
-					cls: `status-dot ${status.isConnected ? 'green' : 'red'}`
-				});
-				statusIndicator.title = status.isConnected
-					? `Connected as ${status.user?.name || p.name} (${p.id})`
-					: `Disconnected from ${p.name} (${p.id})` + (status.error ? `: ${status.error}` : '');
-
-				platformEntry.createSpan({ text: p.name, cls: "platform-name" });
-				
-				// Add a test button for each platform
-				const testBtn = platformEntry.createEl("button", { text: "Test", cls: "platform-test-btn" });
-				testBtn.onclick = async () => {
-					new Notice(`Testing ${p.name} connection...`);
-					const result = await this.plugin.platformManager.testConnections(p.id);
-					const platformResult = result.get(p.id);
-					if (platformResult?.success) {
-						new Notice(`Successfully connected to ${p.name} as ${platformResult.user?.name || 'User'}.`);
-					} else {
-						new Notice(`Failed to connect to ${p.name}.` + (platformResult?.error ? ` Error: ${platformResult.error}` : ''));
-					}
-					// Re-render to update status dot
-					this.render();
-				};
-			});
-		}
 
 		// --- Section: System Logs ---
 		const logSection = container.createDiv({ cls: "publisher-section collapsible-section log-section" });
@@ -316,6 +338,16 @@ export class PublisherView extends ItemView {
 		const logConsole = logContent.createDiv({ cls: "log-console" });
 		this.renderLogs(logConsole);
 	}
+
+	/**
+	 * Helper to update only the note view part without full render if possible
+	 */
+	private updateNoteView() {
+		if (this.noteNameEl) {
+			this.noteNameEl.textContent = this.activeFile ? this.activeFile.basename : "No note selected";
+		}
+	}
+
 
 	/**
 	 * Renders the log entries into the system logs console UI element.
@@ -389,9 +421,11 @@ export class PublisherView extends ItemView {
 			const text = container.querySelector('.connection-text');
 			if (dot && text) {
 				dot.className = `connection-dot ${this.isConnected ? 'connected' : 'disconnected'}`;
-				text.textContent = this.isConnected ? 'Connected to Substack' : 'Disconnected';
+				text.textContent = this.isConnected ? 'Connected' : 'Disconnected';
 			}
 		}
+		// Also refresh the whole view to update platform dots if needed
+		// But maybe just updateNoteView is enough for basic states
 	}
 
 	/**
@@ -416,11 +450,21 @@ export class PublisherView extends ItemView {
 			return;
 		}
 
-		// Check if Substack adapter is configured and connected via PlatformManager
-		const substackPlatform = this.plugin.platformManager.getPlatform('substack');
-		if (!substackPlatform || !substackPlatform.adapter.getDetailedStatus().isConnected) {
-			new Notice("Please configure Substack cookie and URL first and ensure connection.");
+		// Platforms to publish to
+		const platformsToPublish = Array.from(this.selectedPlatforms);
+		
+		if (platformsToPublish.length === 0) {
+			new Notice("Please select at least one platform.");
 			return;
+		}
+
+		// Verify connection for selected platforms
+		for (const platformId of platformsToPublish) {
+			const platform = this.plugin.platformManager.getPlatform(platformId);
+			if (!platform || !platform.adapter.getDetailedStatus().isConnected) {
+				new Notice(`${platform?.name || platformId} is not connected. Please check settings.`);
+				return;
+			}
 		}
 
 		if (this.isPublishing) {
@@ -452,31 +496,34 @@ export class PublisherView extends ItemView {
 			};
 
 			// Publish using PlatformManager
-			const results = await this.plugin.platformManager.publishPost(universalPost, ['substack'], publishOptions);
-			const result = results.get('substack');
-
-			if (!result) { // Should not happen if 'substack' was requested
-				throw new Error("Substack publishing result not found.");
-			}
-
-			if (result.success) {
-				const successMsg = isDraft
-					? `Draft created: ${converted.title}`
-					: `Published: ${converted.title}`;
-				new Notice(successMsg);
-
-				if (result.postUrl) {
-					this.plugin.logger.log(`URL: ${result.postUrl}`);
+			const results = await this.plugin.platformManager.publishPost(universalPost, platformsToPublish, publishOptions);
+			
+			let allSuccess = true;
+			results.forEach((result, platformId) => {
+				const platform = this.plugin.platformManager.getPlatform(platformId);
+				if (result.success) {
+					this.plugin.logger.log(`Success on ${platform?.name || platformId}: ${isDraft ? 'Draft created' : 'Published'}`);
+					if (result.postUrl) {
+						this.plugin.logger.log(`URL (${platformId}): ${result.postUrl}`);
+					}
+				} else {
+					allSuccess = false;
+					this.plugin.logger.log(`Error on ${platform?.name || platformId}: ${result.error}`, 'ERROR');
 				}
+			});
 
-				// Update status badge
+			if (allSuccess) {
+				const successMsg = isDraft
+					? `Sucessfully created drafts on ${platformsToPublish.length} platforms.`
+					: `Sucessfully published to ${platformsToPublish.length} platforms.`;
+				new Notice(successMsg);
+				
 				if (this.statusBadgeEl) {
 					this.statusBadgeEl.textContent = isDraft ? "Draft" : "Published";
 					this.statusBadgeEl.className = `status-badge ${isDraft ? 'draft' : 'published'}`;
 				}
 			} else {
-				new Notice(`Error: ${result.error}`);
-				this.plugin.logger.log(`Error publishing to Substack: ${result.error}`, 'ERROR');
+				new Notice(`Finished with errors. Check logs for details.`);
 			}
 		} catch (error: any) {
 			const errorMsg = error?.message || String(error);
@@ -517,11 +564,21 @@ export class PublisherView extends ItemView {
 			return;
 		}
 
-		// Check if Substack adapter is configured and connected via PlatformManager
-		const substackPlatform = this.plugin.platformManager.getPlatform('substack');
-		if (!substackPlatform || !substackPlatform.adapter.getDetailedStatus().isConnected) {
-			new Notice("Please configure Substack cookie and URL first and ensure connection.");
+		// Platforms to publish to
+		const platformsToPublish = Array.from(this.selectedPlatforms);
+		
+		if (platformsToPublish.length === 0) {
+			new Notice("Please select at least one platform.");
 			return;
+		}
+
+		// Verify connection for selected platforms
+		for (const platformId of platformsToPublish) {
+			const platform = this.plugin.platformManager.getPlatform(platformId);
+			if (!platform || !platform.adapter.getDetailedStatus().isConnected) {
+				new Notice(`${platform?.name || platformId} is not connected. Please check settings.`);
+				return;
+			}
 		}
 
 		// 1. Get all markdown files from folder
@@ -577,17 +634,23 @@ export class PublisherView extends ItemView {
 					};
 
 					// Publish using PlatformManager (as draft)
-					const platformResults = await this.plugin.platformManager.publishPost(universalPost, ['substack'], publishOptions);
-					const substackResult = platformResults.get('substack');
-
-					if (!substackResult) {
-						throw new Error("Substack publishing result not found for batch item.");
-					}
+					const platformResults = await this.plugin.platformManager.publishPost(universalPost, platformsToPublish, publishOptions);
+					
+					// Aggregate results for this file
+					let fileSuccess = true;
+					let errors: string[] = [];
+					
+					platformResults.forEach((res, pId) => {
+						if (!res.success) {
+							fileSuccess = false;
+							errors.push(`${pId}: ${res.error}`);
+						}
+					});
 
 					return {
 						file: file.basename,
-						success: substackResult.success,
-						error: substackResult.error
+						success: fileSuccess,
+						error: fileSuccess ? undefined : errors.join(' | ')
 					};
 				} catch (error: any) {
 					const errorMsg = error?.message || String(error);

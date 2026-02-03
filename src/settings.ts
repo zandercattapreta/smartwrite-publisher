@@ -74,7 +74,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Medium API Key")
-			.setDesc("Enter your Medium Integration Token. Found in Settings > Integration Tokens.")
+			.setDesc("Enter your Medium Integration Token. Note: As of 2025, new tokens must be requested via email to yourfriends@medium.com.")
 			.addText((text) =>
 				text
 					.setPlaceholder("Paste Medium API Key here...")
@@ -83,7 +83,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 						this.plugin.settings.mediumApiKey = value;
 						await this.plugin.saveSettings();
 						// Trigger Medium-specific test after saving
-						// await this.plugin.testConnection('medium'); // Future: Implement platform-specific test
+						this.plugin.platformManager.testConnections('medium');
 					})
 			);
 
@@ -92,8 +92,14 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 			.setDesc("Verify if the API Key is correct for Medium.")
 			.addButton((btn) =>
 				btn.setButtonText("Test connection").onClick(async () => {
-					// await this.plugin.testConnection('medium'); // Future: Implement platform-specific test
-					new Notice("Medium connection test not yet implemented.");
+					new Notice("Testing Medium connection...");
+					const results = await this.plugin.platformManager.testConnections('medium');
+					const result = results.get('medium');
+					if (result?.success) {
+						new Notice(`Successfully connected to Medium as ${result.user?.name || 'User'}.`);
+					} else {
+						new Notice(`Medium connection failed: ${result?.error || 'Unknown error'}`);
+					}
 				})
 			);
 
@@ -137,7 +143,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 						this.plugin.settings.wordpressConfig.appPassword = value;
 						await this.plugin.saveSettings();
 						// Trigger WordPress-specific test after saving
-						// await this.plugin.testConnection('wordpress'); // Future: Implement platform-specific test
+						this.plugin.platformManager.testConnections('wordpress');
 					})
 			);
 
@@ -146,16 +152,32 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 			.setDesc("Verify if the URL, username, and application password are correct for WordPress.")
 			.addButton((btn) =>
 				btn.setButtonText("Test connection").onClick(async () => {
-					// await this.plugin.testConnection('wordpress'); // Future: Implement platform-specific test
-					new Notice("WordPress connection test not yet implemented.");
+					new Notice("Testing WordPress connection...");
+					const results = await this.plugin.platformManager.testConnections('wordpress');
+					const result = results.get('wordpress');
+					if (result?.success) {
+						new Notice(`Successfully connected to WordPress as ${result.user?.name || 'User'}.`);
+					} else {
+						new Notice(`WordPress connection failed: ${result?.error || 'Unknown error'}`);
+					}
 				})
 			);
 
 		containerEl.createEl("h4", { text: "Help and support" });
 
 		new Setting(containerEl)
-			.setName("How to get the cookies?")
-			.setDesc("Click the button below to see the step-by-step guide.")
+			.setName("How to get Medium token?")
+			.setDesc("Medium has restricted new tokens. You must email yourfriends@medium.com with your @username and request an 'Integration Token' for this plugin.")
+			.addButton((btn) =>
+				btn.setButtonText("Copy Email").onClick(() => {
+					navigator.clipboard.writeText("yourfriends@medium.com");
+					new Notice("Email copied to clipboard!");
+				})
+			);
+
+		new Setting(containerEl)
+			.setName("How to get Substack cookies?")
+			.setDesc("Click the button below to see the step-by-step guide for Substack.")
 			.addButton((btn) =>
 				btn.setButtonText("Open guide").onClick(() => {
 					new HelpModal(this.app).open();

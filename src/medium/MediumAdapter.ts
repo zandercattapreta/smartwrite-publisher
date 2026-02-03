@@ -14,6 +14,7 @@ import {
   UserInfo
 } from '../core/BlogPlatformAdapter';
 import { Logger } from '../logger';
+import { MediumClient } from './MediumClient';
 
 /**
  * Medium-specific implementation of the BlogPlatformAdapter.
@@ -32,6 +33,7 @@ export class MediumAdapter implements BlogPlatformAdapter {
     tagLimit: 5
   };
   private logger: Logger;
+  private client: MediumClient | null = null;
   private isConfiguredInternal: boolean = false;
   private isConnectedInternal: boolean = false;
   private currentUser: UserInfo | null = null;
@@ -47,24 +49,30 @@ export class MediumAdapter implements BlogPlatformAdapter {
 
   /**
    * Configures the adapter with Medium connection details.
-   * @param config The connection configuration for Medium (e.g., API token).
+   * @param config The connection configuration for Medium (e.g., apiKey).
    */
   configure(config: any): void {
-    // Placeholder: In a real implementation, this would store and validate Medium API keys or other credentials.
-    this.logger.log(`MediumAdapter configured with: ${JSON.stringify(config)}`, 'INFO');
-    this.isConfiguredInternal = true;
-    this.isConnectedInternal = false; // Reset connection status on configure
+    if (config && config.apiKey) {
+      this.client = new MediumClient(config.apiKey, this.logger);
+      this.isConfiguredInternal = true;
+      this.logger.log('MediumAdapter configured with API Key.', 'INFO');
+    } else {
+      this.isConfiguredInternal = false;
+      this.logger.warn('MediumAdapter configured without API Key.', 'WARN');
+    }
+    
+    this.isConnectedInternal = false;
     this.currentUser = null;
     this.lastConnectionError = undefined;
   }
 
   /**
    * Authenticates with Medium.
-   * @param credentials Medium-specific authentication details (e.g., API token).
+   * @param credentials Medium-specific authentication details (e.g., apiKey).
    * @returns A promise resolving to true if authentication is successful, false otherwise.
    */
   async authenticate(credentials: any): Promise<boolean> {
-    this.configure(credentials); // Configure with provided credentials
+    this.configure(credentials);
     const testResult = await this.testConnection();
     return testResult.success;
   }
@@ -76,9 +84,37 @@ export class MediumAdapter implements BlogPlatformAdapter {
    * @returns A promise resolving to a PublishResult.
    */
   async publish(post: UniversalPost, options: PublishOptions): Promise<PublishResult> {
+    if (!this.isConnectedInternal || !this.currentUser || !this.client) {
+      return { success: false, error: 'Medium adapter not connected or configured.' };
+    }
+
     this.logger.log(`MediumAdapter: Attempting to publish "${post.title}" (isDraft: ${options.isDraft})`, 'INFO');
-    // Placeholder: Implement actual Medium API call to publish post
-    return { success: false, error: 'Medium publishing not yet implemented.' };
+
+    try {
+      const publishStatus = options.isDraft ? 'draft' : 'public';
+      
+      const response = await this.client.createPost(String(this.currentUser.id), {
+        title: post.title,
+        contentFormat: 'markdown', // UniversalPost content is typically markdown
+        content: post.content,
+        tags: post.tags,
+        canonicalUrl: post.canonicalUrl,
+        publishStatus: publishStatus
+      });
+
+      if (response && response.data) {
+        return {
+          success: true,
+          postId: response.data.id,
+          postUrl: response.data.url,
+          platformResponse: response.data
+        };
+      } else {
+        return { success: false, error: 'Failed to create post on Medium.' };
+      }
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Unknown error during Medium publish.' };
+    }
   }
 
   /**
@@ -87,9 +123,14 @@ export class MediumAdapter implements BlogPlatformAdapter {
    * @returns A promise resolving to a DraftResult.
    */
   async createDraft(post: UniversalPost): Promise<DraftResult> {
-    this.logger.log(`MediumAdapter: Attempting to create draft "${post.title}"`, 'INFO');
-    // Placeholder: Implement actual Medium API call to create draft
-    return { success: false, error: 'Medium draft creation not yet implemented.' };
+    const result = await this.publish(post, { isDraft: true });
+    return {
+      success: result.success,
+      error: result.error,
+      draftId: result.postId as any,
+      draftUrl: result.postUrl,
+      platformResponse: result.platformResponse
+    };
   }
 
   /**
@@ -97,36 +138,31 @@ export class MediumAdapter implements BlogPlatformAdapter {
    * @returns A promise resolving to a ConnectionTestResult.
    */
   async testConnection(): Promise<ConnectionTestResult> {
+    if (!this.client || !this.isConfiguredInternal) {
+      return { success: false, error: 'Medium adapter not configured.' };
+    }
+
     this.logger.log('MediumAdapter: Testing connection...', 'INFO');
-    // Placeholder: Implement actual Medium API call to test connection
+    
     try {
-      // Simulate API call
-      // const response = await this.client.get('/me');
-      // if (response.status === 200) {
-      //   this.currentUser = { id: response.json.id, name: response.json.username };
-      //   this.isConnectedInternal = true;
-      //   return { success: true, user: this.currentUser };
-      // } else {
-      //   this.lastConnectionError = `Medium API error: ${response.status}`;
-      //   this.isConnectedInternal = false;
-      //   return { success: false, error: this.lastConnectionError };
-      // }
-      
-      // For now, assume success if configured
-      if (this.isConfiguredInternal) {
-        this.currentUser = { id: 'medium-user-123', name: 'Placeholder Medium User' };
+      const me = await this.client.getMe();
+      if (me) {
+        this.currentUser = {
+          id: me.id,
+          name: me.name,
+          handle: me.username
+        };
         this.isConnectedInternal = true;
         return { success: true, user: this.currentUser };
       } else {
-        this.lastConnectionError = 'MediumAdapter not configured.';
         this.isConnectedInternal = false;
+        this.lastConnectionError = 'Failed to verify Medium authentication.';
         return { success: false, error: this.lastConnectionError };
       }
-
     } catch (error: any) {
-      this.lastConnectionError = `Medium connection failed: ${error.message}`;
       this.isConnectedInternal = false;
-      return { success: false, error: this.lastConnectionError };
+      this.lastConnectionError = error.message;
+      return { success: false, error: error.message };
     }
   }
 
