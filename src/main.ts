@@ -32,7 +32,7 @@ const DEFAULT_SETTINGS: SmartWriteSettings = {
 		username: '',
 		appPassword: ''
 	}
-}
+};
 
 /**
  * Main plugin class for SmartWrite Publisher.
@@ -126,6 +126,9 @@ export default class SmartWritePublisher extends Plugin {
 			this.registerEvent(
 				this.app.workspace.on('active-leaf-change', debouncedUpdate)
 			);
+
+			// Start background connection tests after a short delay
+			setTimeout(() => this.testAllConnections(), 2000);
 		} catch (e) {
 			console.error("SmartWrite Publisher: Critical failure in onload:", e); // Changed to English
 			this.logger.error("Critical failure during plugin onload", e);
@@ -241,9 +244,11 @@ export default class SmartWritePublisher extends Plugin {
 				username: this.settings.wordpressConfig.username,
 				appPassword: this.settings.wordpressConfig.appPassword
 			};
-			this.platformManager.updatePlatformConfig('wordpress', { credentials: config });
 			wordpressPlatform.adapter.configure(config); // Configure adapter directly
 		}
+
+		// Trigger background connection tests after settings update
+		void this.testAllConnections();
 	}
 
 	/**
@@ -251,50 +256,61 @@ export default class SmartWritePublisher extends Plugin {
 	 * Displays notices to the user for feedback and updates the internal connection status.
 	 * @returns A promise that resolves to a ConnectionTestResult.
 	 */
+	/**
+	 * Tests the connection to the primary Substack platform.
+	 * Returns the result for UI feedback in Settings or View.
+	 */
 	async testConnection(): Promise<ConnectionTestResult> {
-		if (!this.settings.cookies || !this.settings.substackUrl) {
-			new Notice("Please configure cookies and URL first."); // Changed to English
-			this.connected = false;
-			return { success: false, error: "Incomplete configuration" };
-		}
-
-		const notice = new Notice("Testing connection...", 0); // Changed to English
-		try {
-			// Test only the Substack platform
-			const results = await this.platformManager.testConnections('substack');
-			const result = results.get('substack');
-
-			if (!result) { // Should not happen if 'substack' is registered
-				throw new Error("Substack platform not found in PlatformManager.");
-			}
-
+		const substack = this.platformManager.getPlatform('substack');
+		if (substack) {
+			const result = await substack.adapter.testConnection();
 			this.connected = result.success;
-
-			if (result.success && result.user) {
-				new Notice(`Successfully connected as: ${result.user.name}`); // Changed to English
-
-				// Notify the view if it's open
-				this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER).forEach(leaf => {
-					if (leaf.view instanceof PublisherView) {
-						leaf.view.isConnected = true; // Use the internal connected state from plugin
-						if (typeof (leaf.view as any).updateConnectionStatus === 'function') {
-							(leaf.view as any).updateConnectionStatus();
-						}
-					}
-				});
-
-				return result;
-			} else {
-				new Notice(result.error || "Connection failed."); // Changed to English
-				return result;
-			}
-		} catch (error: any) {
-			this.connected = false;
-			new Notice("Unexpected error while testing connection."); // Changed to English
-			this.logger.error("Unexpected error during connection test", error);
-			return { success: false, error: String(error) };
-		} finally {
-			notice.hide();
+			
+			// Notify view
+			this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER).forEach(leaf => {
+				if (leaf.view instanceof PublisherView) {
+					leaf.view.updateConnectionStatus();
+				}
+			});
+			
+			return result;
 		}
+		return { success: false, error: 'Substack platform not found' };
+	}
+
+	/**
+	 * Tests connections for all registered and configured platforms in the background.
+	 * Updates internal state and notifies the PublisherView to refresh its UI.
+	 */
+	async testAllConnections() {
+		this.logger.log('Starting background connection tests for all platforms...', 'INFO');
+		
+		const platforms = this.platformManager.getAllPlatforms();
+
+		for (const platform of platforms) {
+			// Skip platforms that are obviously not configured
+			const status = platform.adapter.getDetailedStatus();
+			if (!status.isConfigured) continue;
+
+			try {
+				const result = await platform.adapter.testConnection();
+				
+				// If Substack (primary) succeeds, update the main 'connected' flag
+				if (platform.id === 'substack') {
+					this.connected = result.success;
+				}
+			} catch (e) {
+				this.logger.error(`Background connection test failed for ${platform.name}`, e);
+			}
+		}
+
+		// Notify any open PublisherView to refresh its status indicators
+		this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER).forEach(leaf => {
+			if (leaf.view instanceof PublisherView) {
+				leaf.view.updateConnectionStatus();
+			}
+		});
+
+		this.logger.log('Background connection tests completed.', 'INFO');
 	}
 }

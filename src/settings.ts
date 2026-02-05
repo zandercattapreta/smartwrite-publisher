@@ -121,7 +121,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("WordPress Username")
-			.setDesc("WordPress username. Set to 'token' if using a Personal Access Token.")
+			.setDesc("WordPress username. Optional for WordPress.com users (will default to 'token').")
 			.addText((text) =>
 				text
 					.setPlaceholder("your_username")

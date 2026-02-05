@@ -34,8 +34,8 @@ export class WordPressClient {
 
   constructor(url: string, username: string, appPassword: string, logger: Logger) {
     this.url = this.normalizeUrl(url);
-    this.username = username;
-    this.appPassword = appPassword;
+    this.username = username.trim();
+    this.appPassword = appPassword.trim();
     this.logger = logger;
   }
 
@@ -87,15 +87,36 @@ export class WordPressClient {
    * Internal request helper.
    */
   private async request(method: string, endpoint: string, body: any = null): Promise<any> {
-    const url = `${this.url}/wp-json${endpoint}`;
+    let url = `${this.url}/wp-json${endpoint}`;
+    
+    // Use Bearer token if:
+    // 1. Username is explicitly "token" or "bearer"
+    // 2. It's a WordPress.com site (we default to Bearer/Token for them as Application Passwords are often blocked/complex)
+    // 3. Username is empty (defaults to token/bearer behavior)
+    let isBearer = !this.username || 
+                   this.username.toLowerCase() === 'token' || 
+                   this.username.toLowerCase() === 'bearer' ||
+                   this.url.includes('.wordpress.com');
+
+    // Handle WordPress.com special routing for Bearer tokens
+    if (isBearer && this.url.includes('.wordpress.com')) {
+      const siteDomain = this.url.replace(/^https?:\/\//, '').split('/')[0];
+      
+      // WordPress.com Public API v2 structure: https://public-api.wordpress.com/wp/v2/sites/{site}/{endpoint}
+      // If endpoint is /wp/v2/posts, it becomes /sites/{site}/posts
+      const cleanEndpoint = endpoint.startsWith('/wp/v2') ? endpoint.replace('/wp/v2', '') : endpoint;
+      url = `https://public-api.wordpress.com/wp/v2/sites/${siteDomain}${cleanEndpoint}`;
+      
+      // SPECIAL CASE: getMe (/wp/v2/users/me) on WP.com works better with global /me or site-specific /users/me
+      // Our cleanEndpoint for getMe is already /users/me, so url is correct: sites/{site}/users/me
+    }
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     };
 
-    // Use Bearer token if username is empty or explicitly "token", otherwise use Basic Auth
-    if (!this.username || this.username.toLowerCase() === 'token' || this.username.toLowerCase() === 'bearer') {
+    if (isBearer) {
       headers['Authorization'] = `Bearer ${this.appPassword}`;
     } else {
       const credentials = btoa(`${this.username}:${this.appPassword}`);
@@ -103,7 +124,7 @@ export class WordPressClient {
     }
 
     try {
-      this.logger.log(`[WordPress] ${method} ${url}`, 'INFO');
+      this.logger.log(`[WordPress] Requesting: ${method} ${url} (isBearer: ${isBearer}, username: "${this.username}")`, 'INFO');
       
       const response = await requestUrl({
         url,

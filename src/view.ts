@@ -424,8 +424,22 @@ export class PublisherView extends ItemView {
 				text.textContent = this.isConnected ? 'Connected' : 'Disconnected';
 			}
 		}
-		// Also refresh the whole view to update platform dots if needed
-		// But maybe just updateNoteView is enough for basic states
+
+		// Refresh individual platform dots
+		const platformList = this.containerEl.querySelector('.platform-checkbox-list');
+		if (platformList) {
+			this.plugin.platformManager.getAllPlatforms().forEach(p => {
+				const status = p.adapter.getDetailedStatus();
+				const checkbox = platformList.querySelector(`#platform-check-${p.id}`) as HTMLInputElement;
+				if (checkbox && checkbox.parentElement) {
+					const dot = checkbox.parentElement.querySelector('.status-dot');
+					if (dot) {
+						dot.className = `status-dot ${status.isConnected ? 'green' : 'red'}`;
+						dot.setAttribute('title', status.isConnected ? "Connected" : "Disconnected");
+					}
+				}
+			});
+		}
 	}
 
 	/**
