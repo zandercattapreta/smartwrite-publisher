@@ -2,13 +2,14 @@
  * @file This file defines the main UI view for the SmartWrite Publisher plugin.
  * @description Manages rendering of the plugin's sidebar, user interactions, and orchestrates publishing operations.
  */
-import { ItemView, TFile, WorkspaceLeaf, Notice } from "obsidian";
+import { ItemView, TFile, WorkspaceLeaf, Notice, Modal } from "obsidian";
 import SmartWritePublisher from "./main";
 import { MarkdownConverter } from "./converter";
 import { FolderCache } from "./types";
 import { SETTINGS } from "./constants";
 import { UniversalPost, PublishOptions, ConnectionTestResult, UserInfo } from './core/BlogPlatformAdapter';
 import { PlatformManager } from './core/PlatformManager';
+import { HelpModal } from "./modal";
 
 export const VIEW_TYPE_PUBLISHER = "smartwrite-publisher-view";
 
@@ -146,7 +147,6 @@ export class PublisherView extends ItemView {
 		});
 		helpBtn.textContent = "?";
 		helpBtn.onclick = () => {
-			const { HelpModal } = require("./modal");
 			new HelpModal(this.app).open();
 		};
 
@@ -699,7 +699,7 @@ export class PublisherView extends ItemView {
 	 */
 	async showFolderBrowseModal(folders: string[]): Promise<string | null> {
 		return new Promise((resolve) => {
-			const modal = new (require('obsidian').Modal)(this.app);
+			const modal = new Modal(this.app);
 			modal.titleEl.setText("Browse Folders");
 
 			modal.contentEl.empty();
@@ -749,7 +749,7 @@ export class PublisherView extends ItemView {
 	 */
 	async showFileSelectionModal(files: TFile[]): Promise<TFile[] | null> {
 		return new Promise((resolve) => {
-			const modal = new (require('obsidian').Modal)(this.app);
+			const modal = new Modal(this.app);
 			modal.titleEl.setText("Select Files to Publish");
 
 			modal.contentEl.empty();
@@ -884,7 +884,7 @@ export class PublisherView extends ItemView {
 	 */
 	async confirmBatchPublish(fileCount: number): Promise<boolean> {
 		return new Promise((resolve) => {
-			const modal = new (require('obsidian').Modal)(this.app);
+			const modal = new Modal(this.app);
 			modal.titleEl.setText("Batch Publishing");
 
 			modal.contentEl.empty();
@@ -935,7 +935,7 @@ export class PublisherView extends ItemView {
 	 * @param results An array of objects, each containing file name, success status, and an optional error message.
 	 */
 	showBatchResults(results: Array<{ file: string; success: boolean; error?: string }>) {
-		const modal = new (require('obsidian').Modal)(this.app);
+		const modal = new Modal(this.app);
 		modal.titleEl.setText("Batch Publishing Results");
 
 		modal.contentEl.empty();

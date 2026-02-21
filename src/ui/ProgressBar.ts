@@ -43,7 +43,7 @@ export class ProgressBar {
 		});
 
 		// Initialize to 0%
-		this.barEl.style.width = "0%";
+		this.barEl.setCssStyles({ width: "0%" });
 	}
 
 	/**
@@ -58,7 +58,7 @@ export class ProgressBar {
 		this.currentPercent = Math.min(100, Math.max(0, percent));
 
 		// Update bar width with smooth animation
-		this.barEl.style.width = `${this.currentPercent}%`;
+		this.barEl.setCssStyles({ width: `${this.currentPercent}%` });
 
 		// Update label
 		const defaultStatus = `Processing ${current} of ${total}`;
@@ -72,7 +72,7 @@ export class ProgressBar {
 	 */
 	setPercent(percent: number, status?: string): void {
 		this.currentPercent = Math.min(100, Math.max(0, percent));
-		this.barEl.style.width = `${this.currentPercent}%`;
+		this.barEl.setCssStyles({ width: `${this.currentPercent}%` });
 
 		if (status) {
 			this.labelEl.textContent = status;
@@ -84,7 +84,7 @@ export class ProgressBar {
 	 * @param message - Completion message
 	 */
 	complete(message = "Complete!"): void {
-		this.barEl.style.width = "100%";
+		this.barEl.setCssStyles({ width: "100%" });
 		this.currentPercent = 100;
 		this.labelEl.textContent = message;
 		this.container.addClass(CSS_CLASSES.COMPLETE);
@@ -104,7 +104,7 @@ export class ProgressBar {
 	 */
 	reset(): void {
 		this.currentPercent = 0;
-		this.barEl.style.width = "0%";
+		this.barEl.setCssStyles({ width: "0%" });
 		this.labelEl.textContent = "Initializing...";
 		this.container.removeClass(CSS_CLASSES.COMPLETE);
 		this.container.removeClass(CSS_CLASSES.ERROR);
@@ -114,14 +114,14 @@ export class ProgressBar {
 	 * Shows the progress bar
 	 */
 	show(): void {
-		this.container.style.display = "block";
+		this.container.setCssStyles({ display: "block" });
 	}
 
 	/**
 	 * Hides the progress bar
 	 */
 	hide(): void {
-		this.container.style.display = "none";
+		this.container.setCssStyles({ display: "none" });
 	}
 
 	/**

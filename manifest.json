@@ -3,7 +3,7 @@
   "name": "SmartWrite Publisher",
   "version": "1.1.3",
   "minAppVersion": "0.15.0",
-  "description": "Professional publishing automation for Substack directly from Obsidian. Features batch publishing, parallel processing, and enhanced UX.",
+  "description": "Professional publishing automation for Substack. Features batch publishing, parallel processing, and enhanced UX.",
   "main": "dist/main.js",
   "author": "Zander Catta Preta",
   "authorUrl": "https://github.com/zandercpzed/smartwrite-publisher",

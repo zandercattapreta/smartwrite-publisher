@@ -4,6 +4,7 @@
  */
 
 import { PlatformType } from '../types';
+import { requestUrl } from 'obsidian';
 
 /**
  * Utility class for detecting blogging platforms from URLs
@@ -54,13 +55,13 @@ export class PlatformDetector {
 	private static async isWordPress(url: string): Promise<boolean> {
 		try {
 			const endpoint = `${url}/wp-json/wp/v2/`;
-			const response = await fetch(endpoint, {
+			const response = await requestUrl({ url: endpoint, 
 				method: 'HEAD',
 				headers: {
 					'User-Agent': 'SmartWrite Publisher/1.1.0'
 				}
 			});
-			return response.ok;
+			return response.status >= 200 && response.status < 300;
 		} catch (error) {
 			return false;
 		}
