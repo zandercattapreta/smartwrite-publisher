@@ -13,33 +13,26 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = (process.argv[2] === "production");
 
-const OBSIDIAN_PLUGIN_PATH = "/Users/zander/Library/CloudStorage/GoogleDrive-zander.cattapreta@zedicoes.com/Shared drives/Z•Edições/~ livros/~ Zander Catta Preta/Zander Catta Preta - Programando sem saber código (uma aventura antigravitacional)/.obsidian/plugins/smartwrite-publisher";
+// Optional: allow passing a custom obsidian plugin path via environment variable
+const OBSIDIAN_PLUGIN_PATH = process.env.OBSIDIAN_PLUGIN_PATH;
 
 const copyToObsidian = () => {
-	// Create dist directory if it doesn't exist
-	const distPath = "dist";
-	if (!fs.existsSync(distPath)) {
-		fs.mkdirSync(distPath);
-	}
-
-	// Copy manifest.json and styles.css to dist for consistency with release assets
-	fs.copyFileSync("manifest.json", path.join(distPath, "manifest.json"));
-	fs.copyFileSync("styles.css", path.join(distPath, "styles.css"));
-
-	// Check if OBSIDIAN_PLUGIN_PATH is valid before attempting copy
-	if (!fs.existsSync(OBSIDIAN_PLUGIN_PATH)) {
-		console.log("OBSIDIAN_PLUGIN_PATH not found or not configured. Skipping deployment to Obsidian.");
+	if (!OBSIDIAN_PLUGIN_PATH || !fs.existsSync(OBSIDIAN_PLUGIN_PATH)) {
+		// Only log if the variable was actually set but path is wrong
+		if (OBSIDIAN_PLUGIN_PATH) {
+			console.log(`OBSIDIAN_PLUGIN_PATH "${OBSIDIAN_PLUGIN_PATH}" not found.`);
+		}
 		return;
 	}
 
-	if (!fs.existsSync(OBSIDIAN_PLUGIN_PATH)) {
-		fs.mkdirSync(OBSIDIAN_PLUGIN_PATH, { recursive: true });
+	try {
+		fs.copyFileSync("main.js", path.join(OBSIDIAN_PLUGIN_PATH, "main.js"));
+		fs.copyFileSync("manifest.json", path.join(OBSIDIAN_PLUGIN_PATH, "manifest.json"));
+		fs.copyFileSync("styles.css", path.join(OBSIDIAN_PLUGIN_PATH, "styles.css"));
+		console.log("Plugin deployed to Obsidian.");
+	} catch (err) {
+		console.error("Failed to copy to Obsidian:", err.message);
 	}
-	// Copy from dist to Obsidian plugin path
-	fs.copyFileSync(path.join(distPath, "main.js"), path.join(OBSIDIAN_PLUGIN_PATH, "main.js"));
-	fs.copyFileSync(path.join(distPath, "manifest.json"), path.join(OBSIDIAN_PLUGIN_PATH, "manifest.json"));
-	fs.copyFileSync(path.join(distPath, "styles.css"), path.join(OBSIDIAN_PLUGIN_PATH, "styles.css"));
-	console.log("Plugin deployed to Obsidian.");
 };
 
 const context = await esbuild.context({
