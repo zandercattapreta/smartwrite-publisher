@@ -101,10 +101,9 @@ tar -czf "$BACKUP_FILE" \
     --exclude=node_modules \
     --exclude=.git \
     --exclude=dist \
-    --exclude=main.js \
     --exclude=.obsidian \
     -C "$PROJECT_ROOT" \
-    src/ manifest.json package.json README.md CHANGELOG.md esbuild.config.mjs tsconfig.json 2>/dev/null || true
+    src/ manifest.json package.json README.md CHANGELOG.md esbuild.config.mjs tsconfig.json main.js 2>/dev/null || true
 
 if [ -f "$BACKUP_FILE" ]; then
     BACKUP_SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
@@ -127,6 +126,7 @@ fi
 # Stage changes
 cd "$PROJECT_ROOT"
 git add -A
+git add -f main.js
 
 # Check if there are changes to commit
 if ! git diff --cached --quiet; then
@@ -136,6 +136,7 @@ if ! git diff --cached --quiet; then
 - Created backup: $(basename $BACKUP_FILE)
 - Refactored and validated TypeScript compilation
 - Updated manifest.json
+- Included compiled main.js for installer compatibility
 
 Co-Authored-By: SmartWrite Release Bot <release@smartwrite-publisher.dev>" || {
         echo -e "${YELLOW}WARNING: Commit may have failed or had nothing to commit${NC}"
