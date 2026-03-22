@@ -1318,26 +1318,28 @@ var SmartWriteSettingTab = class extends import_obsidian3.PluginSettingTab {
       })
     );
     containerEl.createEl("h3", { text: "WordPress Configuration" });
-    new import_obsidian3.Setting(containerEl).setName("WordPress URL").setDesc("The base URL of your WordPress site (e.g., https://yoursite.com).").addText(
+    new import_obsidian3.Setting(containerEl).setName("WordPress URL").setDesc("The base URL of your WordPress site (e.g., https://yoursite.com). HTTPS is required for secure authentication.").addText(
       (text) => text.setPlaceholder("https://yoursite.com").setValue(this.plugin.settings.wordpressConfig.url).onChange(async (value) => {
         this.plugin.settings.wordpressConfig.url = value;
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian3.Setting(containerEl).setName("WordPress Username").setDesc("WordPress username. Optional for WordPress.com users (will default to 'token').").addText(
-      (text) => text.setPlaceholder("your_username").setValue(this.plugin.settings.wordpressConfig.username).onChange(async (value) => {
-        this.plugin.settings.wordpressConfig.username = value;
-        await this.plugin.saveSettings();
+    const wpAdapter = this.plugin.platformManager.getPlatform("wordpress")?.adapter;
+    new import_obsidian3.Setting(containerEl).setName("Connect WordPress").setDesc("Authorize SmartWrite Publisher in your browser. This will securely generate credentials without you typing your password.").addButton(
+      (btn) => btn.setButtonText("Connect Now").setCta().onClick(() => {
+        const siteUrl = this.plugin.settings.wordpressConfig.url;
+        if (!siteUrl) {
+          new import_obsidian3.Notice("Please enter your WordPress URL first.");
+          return;
+        }
+        if (!siteUrl.startsWith("https://")) {
+          new import_obsidian3.Notice("Warning: Application Passwords require HTTPS. Authorization might fail.");
+        }
+        const authUrl = wpAdapter.getAuthorizationUrl(siteUrl);
+        window.open(authUrl);
       })
     );
-    new import_obsidian3.Setting(containerEl).setName("WordPress App Password / Token").setDesc("Application Password (WP.org) or Personal Access Token (WP.com).").addText(
-      (text) => text.setPlaceholder("Paste application password here...").setValue(this.plugin.settings.wordpressConfig.appPassword).onChange(async (value) => {
-        this.plugin.settings.wordpressConfig.appPassword = value;
-        await this.plugin.saveSettings();
-        this.plugin.platformManager.testConnections("wordpress");
-      })
-    );
-    new import_obsidian3.Setting(containerEl).setName("Test WordPress connection").setDesc("Verify if the URL, username, and application password are correct for WordPress.").addButton(
+    new import_obsidian3.Setting(containerEl).setName("Test WordPress connection").setDesc("Verify if the connection to WordPress is active.").addButton(
       (btn) => btn.setButtonText("Test connection").onClick(async () => {
         new import_obsidian3.Notice("Testing WordPress connection...");
         const results = await this.plugin.platformManager.testConnections("wordpress");
@@ -1349,6 +1351,13 @@ var SmartWriteSettingTab = class extends import_obsidian3.PluginSettingTab {
         }
       })
     );
+    const wpStatus = wpAdapter.getDetailedStatus();
+    if (wpStatus.isConnected && wpStatus.user) {
+      containerEl.createEl("p", {
+        text: `Connected as: ${wpStatus.user.name} (@${wpStatus.user.handle})`,
+        cls: "setting-item-description"
+      });
+    }
     containerEl.createEl("h4", { text: "Help and support" });
     new import_obsidian3.Setting(containerEl).setName("How to get Medium token?").setDesc("Medium tokens are currently restricted. Email yourfriends@medium.com to request one.").addButton(
       (btn) => btn.setButtonText("Copy Email").onClick(() => {
@@ -2543,6 +2552,18 @@ var WordPressClient = class {
     }
   }
   /**
+   * Retrieves posts from the site.
+   */
+  async getPosts(count = 10) {
+    try {
+      const response = await this.request("GET", `/wp/v2/posts?per_page=${count}`);
+      return response;
+    } catch (error) {
+      this.logger.log("Failed to fetch WordPress posts", "ERROR", error);
+      return null;
+    }
+  }
+  /**
    * Creates a post.
    */
   async createPost(postData) {
@@ -2683,12 +2704,22 @@ var WordPressAdapter = class {
     }
     this.logger.log(`WordPressAdapter: Attempting to publish "${post.title}" (isDraft: ${options.isDraft})`, "INFO");
     try {
-      const status = options.isDraft ? "draft" : "publish";
+      let status = options.isDraft ? "draft" : "publish";
+      let date = void 0;
+      if (!options.isDraft && post.scheduledDate) {
+        const now = /* @__PURE__ */ new Date();
+        if (post.scheduledDate > now) {
+          status = "future";
+          date = post.scheduledDate.toISOString();
+          this.logger.log(`WordPressAdapter: Scheduling post for ${date}`, "INFO");
+        }
+      }
       const contentWithBlocks = this.convertToGutenberg(post.content);
       const response = await this.client.createPost({
         title: post.title,
         content: contentWithBlocks,
-        status
+        status,
+        date
         // categories: post.categories, // To be implemented (needs mapping names to IDs)
         // tags: post.tags              // To be implemented (needs mapping names to IDs)
       });
@@ -2704,6 +2735,32 @@ var WordPressAdapter = class {
       }
     } catch (error) {
       return { success: false, error: error.message || "Unknown error during WordPress publish." };
+    }
+  }
+  /**
+   * Retrieves recent posts from WordPress.
+   */
+  async getPosts(count = 10) {
+    if (!this.client) return [];
+    try {
+      const wpPosts = await this.client.getPosts(count);
+      if (!wpPosts) return [];
+      return wpPosts.map((wp) => ({
+        title: wp.title.rendered,
+        content: wp.content.rendered,
+        // WP returns HTML by default
+        contentHtml: wp.content.rendered,
+        author: String(this.currentUser?.name || ""),
+        metadata: {
+          wp_id: wp.id,
+          link: wp.link,
+          status: wp.status,
+          date: wp.date
+        }
+      }));
+    } catch (error) {
+      this.logger.error("WordPressAdapter: Failed to get posts", error);
+      return [];
     }
   }
   /**
@@ -2762,6 +2819,20 @@ var WordPressAdapter = class {
       user: this.currentUser || void 0,
       error: this.lastConnectionError
     };
+  }
+  /**
+   * Generates the WordPress Application Password Authorization URL.
+   * @param siteUrl The base URL of the WordPress site.
+   * @returns The full authorization URL.
+   */
+  getAuthorizationUrl(siteUrl) {
+    let normalized = siteUrl.trim();
+    if (normalized.endsWith("/")) normalized = normalized.slice(0, -1);
+    if (!normalized.startsWith("http")) normalized = `https://${normalized}`;
+    const appName = "SmartWrite Publisher";
+    const appId = "smartwrite-publisher";
+    const successUrl = encodeURIComponent(`obsidian://smartwrite-publisher-auth?site_url=${encodeURIComponent(normalized)}`);
+    return `${normalized}/wp-admin/authorize-application.php?app_name=${encodeURIComponent(appName)}&app_id=${appId}&success_url=${successUrl}`;
   }
   /**
    * Simple conversion from Markdown to Gutenberg-style blocks.
@@ -2855,6 +2926,29 @@ var SmartWritePublisher = class extends import_obsidian7.Plugin {
         name: "Open sidebar",
         callback: () => {
           void this.activateView();
+        }
+      });
+      this.registerObsidianProtocolHandler("smartwrite-publisher-auth", async (params) => {
+        const { user_login, password, site_url } = params;
+        if (user_login && password) {
+          this.logger.log(`WordPress Auth callback received for user: ${user_login} at ${site_url}`, "INFO");
+          this.settings.wordpressConfig.username = user_login;
+          this.settings.wordpressConfig.appPassword = password;
+          if (site_url) this.settings.wordpressConfig.url = site_url;
+          await this.saveSettings();
+          new import_obsidian7.Notice(`Successfully authenticated WordPress user: ${user_login}`);
+          const wpPlatform = this.platformManager.getPlatform("wordpress");
+          if (wpPlatform) {
+            await wpPlatform.adapter.testConnection();
+            this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER).forEach((leaf) => {
+              if (leaf.view instanceof PublisherView) {
+                leaf.view.updateConnectionStatus();
+              }
+            });
+          }
+        } else {
+          this.logger.error("WordPress Auth callback received but missing credentials", params);
+          new import_obsidian7.Notice("WordPress authentication failed: Missing credentials.");
         }
       });
       const debouncedUpdate = this.debounce(() => this.updateActiveNote(), 500);
@@ -2962,6 +3056,7 @@ var SmartWritePublisher = class extends import_obsidian7.Plugin {
         username: this.settings.wordpressConfig.username,
         appPassword: this.settings.wordpressConfig.appPassword
       };
+      this.platformManager.updatePlatformConfig("wordpress", { credentials: config });
       wordpressPlatform.adapter.configure(config);
     }
     void this.testAllConnections();

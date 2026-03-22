@@ -90,7 +90,18 @@ export class WordPressAdapter implements BlogPlatformAdapter {
     this.logger.log(`WordPressAdapter: Attempting to publish "${post.title}" (isDraft: ${options.isDraft})`, 'INFO');
 
     try {
-      const status = options.isDraft ? 'draft' : 'publish';
+      let status: 'publish' | 'future' | 'draft' = options.isDraft ? 'draft' : 'publish';
+      let date: string | undefined = undefined;
+
+      // Handle Scheduling
+      if (!options.isDraft && post.scheduledDate) {
+        const now = new Date();
+        if (post.scheduledDate > now) {
+          status = 'future';
+          date = post.scheduledDate.toISOString();
+          this.logger.log(`WordPressAdapter: Scheduling post for ${date}`, 'INFO');
+        }
+      }
       
       // Convert Markdown to Gutenberg Blocks
       const contentWithBlocks = this.convertToGutenberg(post.content);
@@ -99,6 +110,7 @@ export class WordPressAdapter implements BlogPlatformAdapter {
         title: post.title,
         content: contentWithBlocks,
         status: status,
+        date: date,
         // categories: post.categories, // To be implemented (needs mapping names to IDs)
         // tags: post.tags              // To be implemented (needs mapping names to IDs)
       });
@@ -115,6 +127,34 @@ export class WordPressAdapter implements BlogPlatformAdapter {
       }
     } catch (error: any) {
       return { success: false, error: error.message || 'Unknown error during WordPress publish.' };
+    }
+  }
+
+  /**
+   * Retrieves recent posts from WordPress.
+   */
+  async getPosts(count: number = 10): Promise<UniversalPost[]> {
+    if (!this.client) return [];
+    
+    try {
+      const wpPosts = await this.client.getPosts(count);
+      if (!wpPosts) return [];
+
+      return wpPosts.map(wp => ({
+        title: wp.title.rendered,
+        content: wp.content.rendered, // WP returns HTML by default
+        contentHtml: wp.content.rendered,
+        author: String(this.currentUser?.name || ''),
+        metadata: {
+          wp_id: wp.id,
+          link: wp.link,
+          status: wp.status,
+          date: wp.date
+        }
+      }));
+    } catch (error) {
+      this.logger.error('WordPressAdapter: Failed to get posts', error);
+      return [];
     }
   }
 
@@ -178,6 +218,24 @@ export class WordPressAdapter implements BlogPlatformAdapter {
       user: this.currentUser || undefined,
       error: this.lastConnectionError
     };
+  }
+
+  /**
+   * Generates the WordPress Application Password Authorization URL.
+   * @param siteUrl The base URL of the WordPress site.
+   * @returns The full authorization URL.
+   */
+  getAuthorizationUrl(siteUrl: string): string {
+    let normalized = siteUrl.trim();
+    if (normalized.endsWith('/')) normalized = normalized.slice(0, -1);
+    if (!normalized.startsWith('http')) normalized = `https://${normalized}`;
+    
+    const appName = "SmartWrite Publisher";
+    const appId = "smartwrite-publisher";
+    // Encode obsidian callback URL
+    const successUrl = encodeURIComponent(`obsidian://smartwrite-publisher-auth?site_url=${encodeURIComponent(normalized)}`);
+    
+    return `${normalized}/wp-admin/authorize-application.php?app_name=${encodeURIComponent(appName)}&app_id=${appId}&success_url=${successUrl}`;
   }
 
   /**

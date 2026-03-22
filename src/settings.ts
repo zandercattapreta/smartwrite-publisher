@@ -1,6 +1,7 @@
 import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import SmartWritePublisher from "./main";
 import { HelpModal } from "./modal";
+import { WordPressAdapter } from "./wordpress/WordPressAdapter";
 
 /**
  * Represents the settings tab for the SmartWrite Publisher plugin.
@@ -108,7 +109,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("WordPress URL")
-			.setDesc("The base URL of your WordPress site (e.g., https://yoursite.com).")
+			.setDesc("The base URL of your WordPress site (e.g., https://yoursite.com). HTTPS is required for secure authentication.")
 			.addText((text) =>
 				text
 					.setPlaceholder("https://yoursite.com")
@@ -119,37 +120,29 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 					})
 			);
 
-		new Setting(containerEl)
-			.setName("WordPress Username")
-			.setDesc("WordPress username. Optional for WordPress.com users (will default to 'token').")
-			.addText((text) =>
-				text
-					.setPlaceholder("your_username")
-					.setValue(this.plugin.settings.wordpressConfig.username)
-					.onChange(async (value) => {
-						this.plugin.settings.wordpressConfig.username = value;
-						await this.plugin.saveSettings();
-					})
-			);
+		const wpAdapter = this.plugin.platformManager.getPlatform('wordpress')?.adapter as WordPressAdapter;
 
 		new Setting(containerEl)
-			.setName("WordPress App Password / Token")
-			.setDesc("Application Password (WP.org) or Personal Access Token (WP.com).")
-			.addText((text) =>
-				text
-					.setPlaceholder("Paste application password here...")
-					.setValue(this.plugin.settings.wordpressConfig.appPassword)
-					.onChange(async (value) => {
-						this.plugin.settings.wordpressConfig.appPassword = value;
-						await this.plugin.saveSettings();
-						// Trigger WordPress-specific test after saving
-						this.plugin.platformManager.testConnections('wordpress');
-					})
+			.setName("Connect WordPress")
+			.setDesc("Authorize SmartWrite Publisher in your browser. This will securely generate credentials without you typing your password.")
+			.addButton((btn) =>
+				btn.setButtonText("Connect Now").setCta().onClick(() => {
+					const siteUrl = this.plugin.settings.wordpressConfig.url;
+					if (!siteUrl) {
+						new Notice("Please enter your WordPress URL first.");
+						return;
+					}
+					if (!siteUrl.startsWith('https://')) {
+						new Notice("Warning: Application Passwords require HTTPS. Authorization might fail.");
+					}
+					const authUrl = wpAdapter.getAuthorizationUrl(siteUrl);
+					window.open(authUrl);
+				})
 			);
 
 		new Setting(containerEl)
 			.setName("Test WordPress connection")
-			.setDesc("Verify if the URL, username, and application password are correct for WordPress.")
+			.setDesc("Verify if the connection to WordPress is active.")
 			.addButton((btn) =>
 				btn.setButtonText("Test connection").onClick(async () => {
 					new Notice("Testing WordPress connection...");
@@ -162,6 +155,15 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 					}
 				})
 			);
+
+		// Connected user info for WordPress
+		const wpStatus = wpAdapter.getDetailedStatus();
+		if (wpStatus.isConnected && wpStatus.user) {
+			containerEl.createEl("p", { 
+				text: `Connected as: ${wpStatus.user.name} (@${wpStatus.user.handle})`,
+				cls: "setting-item-description"
+			});
+		}
 
 		containerEl.createEl("h4", { text: "Help and support" });
 

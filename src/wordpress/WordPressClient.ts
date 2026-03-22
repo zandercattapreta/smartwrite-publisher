@@ -53,12 +53,26 @@ export class WordPressClient {
   }
 
   /**
+   * Retrieves posts from the site.
+   */
+  async getPosts(count: number = 10): Promise<WordPressPostResponse[] | null> {
+    try {
+      const response = await this.request('GET', `/wp/v2/posts?per_page=${count}`);
+      return response as WordPressPostResponse[];
+    } catch (error) {
+      this.logger.log('Failed to fetch WordPress posts', 'ERROR', error);
+      return null;
+    }
+  }
+
+  /**
    * Creates a post.
    */
   async createPost(postData: {
     title: string,
     content: string,
     status?: 'publish' | 'future' | 'draft' | 'pending' | 'private',
+    date?: string, // ISO 8601 format for scheduling
     categories?: number[],
     tags?: number[],
     format?: string,

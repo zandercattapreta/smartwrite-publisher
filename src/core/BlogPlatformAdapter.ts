@@ -91,6 +91,13 @@ export interface BlogPlatformAdapter {
   getDetailedStatus(): { isConfigured: boolean; isConnected: boolean; user?: UserInfo; error?: string; };
   
   /**
+   * (Optional) Retrieves recent posts from the platform.
+   * @param count Optional: Number of posts to retrieve (defaults to platform default).
+   * @returns A promise resolving to an array of UniversalPost objects.
+   */
+  getPosts?(count?: number): Promise<UniversalPost[]>;
+
+  /**
    * (Optional) Retrieves all available tags from the platform.
    * @returns A promise resolving to an array of tag names.
    */

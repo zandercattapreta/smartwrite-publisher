@@ -121,6 +121,37 @@ export default class SmartWritePublisher extends Plugin {
 				},
 			});
 
+			// Register Protocol Handler for WordPress Authentication (SSO-like)
+			this.registerObsidianProtocolHandler("smartwrite-publisher-auth", async (params) => {
+				const { user_login, password, site_url } = params;
+
+				if (user_login && password) {
+					this.logger.log(`WordPress Auth callback received for user: ${user_login} at ${site_url}`, 'INFO');
+					
+					this.settings.wordpressConfig.username = user_login;
+					this.settings.wordpressConfig.appPassword = password;
+					if (site_url) this.settings.wordpressConfig.url = site_url;
+					
+					await this.saveSettings();
+					
+					new Notice(`Successfully authenticated WordPress user: ${user_login}`);
+					
+					// Re-test connection to confirm and update UI
+					const wpPlatform = this.platformManager.getPlatform('wordpress');
+					if (wpPlatform) {
+						await wpPlatform.adapter.testConnection();
+						this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER).forEach(leaf => {
+							if (leaf.view instanceof PublisherView) {
+								leaf.view.updateConnectionStatus();
+							}
+						});
+					}
+				} else {
+					this.logger.error("WordPress Auth callback received but missing credentials", params);
+					new Notice("WordPress authentication failed: Missing credentials.");
+				}
+			});
+
 			// Evento para detectar mudança de nota ativa com DEBOUNCE
 			const debouncedUpdate = this.debounce(() => this.updateActiveNote(), 500);
 			this.registerEvent(
@@ -244,6 +275,7 @@ export default class SmartWritePublisher extends Plugin {
 				username: this.settings.wordpressConfig.username,
 				appPassword: this.settings.wordpressConfig.appPassword
 			};
+			this.platformManager.updatePlatformConfig('wordpress', { credentials: config });
 			wordpressPlatform.adapter.configure(config); // Configure adapter directly
 		}
 
