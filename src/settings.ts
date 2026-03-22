@@ -70,6 +70,8 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 				})
 			);
 
+		/*
+		// Medium and WordPress settings are disabled as requested
 		// Medium Settings
 		containerEl.createEl("h3", { text: "Medium Configuration" });
 
@@ -164,6 +166,7 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 				cls: "setting-item-description"
 			});
 		}
+		*/
 
 		containerEl.createEl("h4", { text: "Help and support" });
 

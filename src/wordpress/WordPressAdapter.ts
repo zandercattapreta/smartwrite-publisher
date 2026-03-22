@@ -236,18 +236,13 @@ export class WordPressAdapter implements BlogPlatformAdapter {
     
     const appName = "SmartWrite Publisher";
     
-    // Use the official callback URL registered in main.ts
-    const callbackUrl = `obsidian://smartwrite-publisher-auth`;
+    // The callback URL that WordPress will redirect back to.
+    // We include the site_url as a parameter so we know which site was authorized.
+    const callbackUrl = `obsidian://smartwrite-publisher-auth?site_url=${encodeURIComponent(normalized)}`;
     
-    // Using the wp-login.php route which is often more compatible than /wp-admin/
-    // and correctly handles the 'authorize_application' action.
-    const params = new URLSearchParams({
-      action: 'authorize_application',
-      app_name: appName,
-      success_url: callbackUrl,
-    });
-    
-    return `${normalized}/wp-login.php?${params.toString()}`;
+    // Using the most standard /wp-admin/ path with only required parameters.
+    // Some servers reject complex query strings in authorization requests.
+    return `${normalized}/wp-admin/authorize-application.php?app_name=${encodeURIComponent(appName)}&success_url=${encodeURIComponent(callbackUrl)}`;
   }
 
   /**

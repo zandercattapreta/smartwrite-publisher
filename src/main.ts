@@ -74,13 +74,15 @@ export default class SmartWritePublisher extends Plugin {
 				substackUrl: this.settings.substackUrl
 			});
 
+			/* 
+			// Medium and WordPress are disabled as requested
 			// Initialize and register Medium Adapter
 			const mediumAdapter = new MediumAdapter(this.logger);
 			this.platformManager.registerPlatform('medium', 'Medium', mediumAdapter, {
 				credentials: {
 					apiKey: this.settings.mediumApiKey
 				},
-				isEnabled: false // Medium is not primary, starts disabled
+				isEnabled: false
 			});
 			mediumAdapter.configure({
 				apiKey: this.settings.mediumApiKey
@@ -94,13 +96,14 @@ export default class SmartWritePublisher extends Plugin {
 					username: this.settings.wordpressConfig.username,
 					appPassword: this.settings.wordpressConfig.appPassword
 				},
-				isEnabled: false // WordPress is not primary, starts disabled
+				isEnabled: false
 			});
 			wordpressAdapter.configure({
 				url: this.settings.wordpressConfig.url,
 				username: this.settings.wordpressConfig.username,
 				appPassword: this.settings.wordpressConfig.appPassword
 			});
+			*/
 
 			this.addSettingTab(new SmartWriteSettingTab(this.app, this));
 
