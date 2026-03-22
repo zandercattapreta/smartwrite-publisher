@@ -1339,6 +1339,24 @@ var SmartWriteSettingTab = class extends import_obsidian3.PluginSettingTab {
         window.open(authUrl);
       })
     );
+    const manualSection = containerEl.createEl("details", { cls: "wp-manual-auth" });
+    manualSection.createEl("summary", { text: "Manual Setup (If 'Connect Now' fails)" });
+    manualSection.createEl("p", {
+      text: "If you see a 'Lost?' or 404 error, your site might not support automatic authorization. You can still set it up manually:",
+      cls: "setting-item-description"
+    });
+    new import_obsidian3.Setting(manualSection).setName("WordPress Username").setDesc("Your WordPress login username.").addText(
+      (text) => text.setPlaceholder("username").setValue(this.plugin.settings.wordpressConfig.username).onChange(async (value) => {
+        this.plugin.settings.wordpressConfig.username = value;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian3.Setting(manualSection).setName("Application Password").setDesc("Go to Users -> Profile in your WordPress admin to generate an Application Password.").addText(
+      (text) => text.setPlaceholder("xxxx xxxx xxxx xxxx").setValue(this.plugin.settings.wordpressConfig.appPassword).onChange(async (value) => {
+        this.plugin.settings.wordpressConfig.appPassword = value;
+        await this.plugin.saveSettings();
+      })
+    );
     new import_obsidian3.Setting(containerEl).setName("Test WordPress connection").setDesc("Verify if the connection to WordPress is active.").addButton(
       (btn) => btn.setButtonText("Test connection").onClick(async () => {
         new import_obsidian3.Notice("Testing WordPress connection...");
@@ -2828,11 +2846,20 @@ var WordPressAdapter = class {
   getAuthorizationUrl(siteUrl) {
     let normalized = siteUrl.trim();
     if (normalized.endsWith("/")) normalized = normalized.slice(0, -1);
-    if (!normalized.startsWith("http")) normalized = `https://${normalized}`;
+    if (!normalized.startsWith("http")) {
+      normalized = `https://${normalized}`;
+    }
     const appName = "SmartWrite Publisher";
     const appId = "smartwrite-publisher";
-    const successUrl = encodeURIComponent(`obsidian://smartwrite-publisher-auth?site_url=${encodeURIComponent(normalized)}`);
-    return `${normalized}/wp-admin/authorize-application.php?app_name=${encodeURIComponent(appName)}&app_id=${appId}&success_url=${successUrl}`;
+    const callbackUrl = `obsidian://smartwrite-publisher-auth`;
+    const params = new URLSearchParams({
+      app_name: appName,
+      app_id: appId,
+      success_url: callbackUrl,
+      site_url: normalized
+      // Pass site_url so we can verify it on return
+    });
+    return `${normalized}/wp-admin/authorize-application.php?${params.toString()}`;
   }
   /**
    * Simple conversion from Markdown to Gutenberg-style blocks.
