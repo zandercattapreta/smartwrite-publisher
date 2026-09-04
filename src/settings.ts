@@ -69,6 +69,24 @@ export class SmartWriteSettingTab extends PluginSettingTab {
 				})
 			);
 
+		new Setting(containerEl)
+			.setName("Default audience")
+			.setDesc("everyone | only_paid | only_free — usado em draft, live e schedule.")
+			.addDropdown((dd) =>
+				dd
+					.addOption("everyone", "everyone")
+					.addOption("only_paid", "only_paid")
+					.addOption("only_free", "only_free")
+					.setValue(this.plugin.settings.defaultAudience)
+					.onChange(async (value) => {
+						this.plugin.settings.defaultAudience = value as
+							| "everyone"
+							| "only_paid"
+							| "only_free";
+						await this.plugin.saveSettings();
+					}),
+			);
+
 		// Medium Settings
 		containerEl.createEl("h3", { text: "Medium Configuration" });
 

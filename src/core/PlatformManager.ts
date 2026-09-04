@@ -110,16 +110,9 @@ export class PlatformManager {
     const publishPromises = platformsToPublish.map(async (p) => {
       let result: PublishResult;
       try {
-        // Merge global options with platform-specific ones
         const options: PublishOptions = { ...globalOptions, ...p.settings?.publishOptions };
-        
-        // Decide whether to publish as draft or live based on options
-        if (options.isDraft) {
-          const draftResult = await p.adapter.createDraft(post);
-          result = { success: draftResult.success, error: draftResult.error, postUrl: draftResult.draftUrl };
-        } else {
-          result = await p.adapter.publish(post, options);
-        }
+        // Sempre publish() — audience, schedule e imagens passam pelo adapter
+        result = await p.adapter.publish(post, options);
       } catch (error: any) {
         result = { success: false, error: String(error) };
         this.logger.error(`Error publishing to ${p.name}:`, error);

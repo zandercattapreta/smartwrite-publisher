@@ -167,7 +167,10 @@ export interface UniversalPost {
 export interface PublishOptions {
   /** Indicates if the post should be published as a draft (true) or live (false). */
   isDraft: boolean;
-  // Add other common publishing options here as needed.
+  /** Substack audience (everyone | only_paid | only_free). */
+  audience?: 'everyone' | 'only_paid' | 'only_free';
+  /** If set, schedule after creating draft (implies draft, not live publish). */
+  scheduledAt?: Date;
 }
 
 /**

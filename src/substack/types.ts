@@ -13,15 +13,18 @@ export interface SubstackUserInfo {
 	handle?: string;
 }
 
+import type { SubstackAudience } from './proseMirrorTypes';
+
 /**
- * Opções para publicar um post
+ * Opções para publicar um post (payload builder legado + audience)
  */
 export interface PublishOptions {
 	title: string;
 	subtitle?: string;
-	bodyHtml: any; // Tiptap JSON ou string (para compatibilidade)
+	bodyHtml: unknown;
 	isDraft?: boolean;
 	scheduledAt?: Date;
+	audience?: SubstackAudience;
 }
 
 /**
@@ -54,10 +57,10 @@ export interface DraftResponse {
 export interface DraftPayload {
 	draft_title: string;
 	draft_subtitle?: string;
-	bodyJson: any; // Tiptap JSON structure
+	bodyJson?: unknown;
 	type: string;
 	draft_bylines: Array<{ user_id: number }>;
-	[key: string]: any;
+	[key: string]: unknown;
 }
 
 /**

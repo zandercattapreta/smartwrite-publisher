@@ -1,5 +1,21 @@
 # Changelog: SmartWrite Publisher
 
+## [1.2.0] - 2026-09-04
+
+### Added
+- Upload de imagens locais via `POST /api/v1/image` (base64)
+- Builder ProseMirror com `captionedImage` → `image2` (incl. `href` em `[![[img]]](url)`)
+- Agendamento: botão Schedule + `prepublish` / `scheduled_release` (`trigger_at`)
+- Setting **Default audience** (`everyone` | `only_paid` | `only_free`)
+- Suite Vitest (builder, payload, dimensões de imagem)
+
+### Changed
+- Fluxo Substack: draft vazio → upload → PUT `draft_body` (JSON string)
+- PlatformManager sempre usa `adapter.publish()` (audience/schedule fluem)
+- Logs HTTP sem cookie/data-URI
+
+---
+
 ## [1.1.0] - 2026-02-03 (Major - Multi-platform Support & UI Refactoring)
 
 ### ✍️ Medium Integration (Phase 2-4)

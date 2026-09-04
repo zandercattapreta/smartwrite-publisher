@@ -1,393 +1,414 @@
 /**
  * @file Implements the BlogPlatformAdapter interface for Substack.
- * @description This adapter handles all Substack-specific API interactions, including
- *              authentication, post publishing (drafts and live), and connection testing.
+ * @description Auth, draft com imagens (ProseMirror), publish live e agendamento.
  */
 
-import { BlogPlatformAdapter, UniversalPost, PublishOptions, PublishResult, DraftResult, UserInfo, ConnectionTestResult } from '../core/BlogPlatformAdapter';
+import type { App } from 'obsidian';
+import {
+	BlogPlatformAdapter,
+	UniversalPost,
+	PublishOptions,
+	PublishResult,
+	DraftResult,
+	UserInfo,
+	ConnectionTestResult,
+} from '../core/BlogPlatformAdapter';
 import { Logger } from '../logger';
 import { SubstackClient } from './SubstackClient';
 import { PayloadBuilder } from './SubstackPayloadBuilder';
 import { ErrorHandler } from './SubstackErrorHandler';
-import { IdStrategyManager, PublicationEndpointStrategy, ArchiveStrategy, UserSelfStrategy } from './SubstackIdStrategy';
+import {
+	IdStrategyManager,
+	PublicationEndpointStrategy,
+	ArchiveStrategy,
+	UserSelfStrategy,
+} from './SubstackIdStrategy';
 import { SubstackUserInfo, ConnectionConfig, SubstackError, DraftResponse } from './types';
+import { ProseMirrorBuilder } from './ProseMirrorBuilder';
+import { ImageResolver } from './ImageResolver';
+import type { SubstackAudience } from './proseMirrorTypes';
 
-/**
- * Substack-specific implementation of the BlogPlatformAdapter.
- * Manages communication with the Substack API.
- */
 export class SubstackAdapter implements BlogPlatformAdapter {
-  name: string = 'Substack';
-  capabilities = {
-    supportsTags: false,
-    supportsCategories: false,
-    supportsScheduling: false,
-    supportsVisibility: false,
-    supportsMultipleAuthors: false,
-    supportsUpdate: false,
-    supportsDelete: false
-  };
-  private logger: Logger;
-  private client: SubstackClient | null = null;
-  private payloadBuilder: PayloadBuilder | null = null;
-  private errorHandler: ErrorHandler | null = null;
-  private idManager: IdStrategyManager | null = null;
+	name = 'Substack';
+	capabilities = {
+		supportsTags: false,
+		supportsCategories: false,
+		supportsScheduling: true,
+		supportsVisibility: false,
+		supportsMultipleAuthors: false,
+		supportsUpdate: false,
+		supportsDelete: false,
+	};
 
-  // Internal state
-  private baseUrl: string = '';
-  private cookie: string = '';
-  private currentUser: SubstackUserInfo | null = null; // Renamed to avoid conflict with UserInfo interface
-  private publicationId: number | null = null;
-  private lastConnectionError: string | undefined = undefined;
+	private logger: Logger;
+	private client: SubstackClient | null = null;
+	private payloadBuilder: PayloadBuilder | null = null;
+	private errorHandler: ErrorHandler | null = null;
+	private idManager: IdStrategyManager | null = null;
+	private proseBuilder = new ProseMirrorBuilder();
+	private imageResolver = new ImageResolver();
 
+	private baseUrl = '';
+	private cookie = '';
+	private currentUser: SubstackUserInfo | null = null;
+	private publicationId: number | null = null;
+	private lastConnectionError: string | undefined = undefined;
+	private app: App | null = null;
+	private defaultAudience: SubstackAudience = 'only_paid';
 
-  /**
-   * Creates an instance of SubstackAdapter.
-   * @param logger The logger instance for logging messages.
-   */
-  constructor(logger: Logger) {
-    this.logger = logger;
-  }
+	constructor(logger: Logger) {
+		this.logger = logger;
+	}
 
-  /**
-   * Configures the adapter with Substack connection details.
-   * This method is called internally or by the PlatformManager to set up the adapter.
-   * @param config The connection configuration for Substack (cookie and URL).
-   */
-  configure(config: ConnectionConfig): void {
-    this.cookie = this.normalizeCookie(config.cookie);
-    this.baseUrl = this.buildBaseUrl(config.substackUrl);
+	/** Injeta App do Obsidian para leitura de imagens do vault. */
+	setApp(app: App): void {
+		this.app = app;
+	}
 
-    this.logger.log(`SubstackAdapter configured for: ${this.baseUrl}`, 'INFO');
+	setDefaultAudience(audience: SubstackAudience): void {
+		this.defaultAudience = audience;
+	}
 
-    // Initialize components
-    this.client = new SubstackClient(this.baseUrl, this.cookie, this.logger);
-    this.payloadBuilder = new PayloadBuilder(this.logger); // Fixed typo
-    this.errorHandler = new ErrorHandler(this.logger);
-    this.idManager = new IdStrategyManager(this.logger);
+	configure(config: ConnectionConfig): void {
+		this.cookie = this.normalizeCookie(config.cookie);
+		this.baseUrl = this.buildBaseUrl(config.substackUrl);
+		this.logger.log(`SubstackAdapter configured for: ${this.baseUrl}`, 'INFO');
 
-    // Reset connection status
-    this.currentUser = null;
-    this.publicationId = null;
-    this.lastConnectionError = undefined;
-  }
+		this.client = new SubstackClient(this.baseUrl, this.cookie, this.logger);
+		this.payloadBuilder = new PayloadBuilder(this.logger);
+		this.errorHandler = new ErrorHandler(this.logger);
+		this.idManager = new IdStrategyManager(this.logger);
 
-  /**
-   * Authenticates with Substack by testing the connection and retrieving user/publication info.
-   * @param credentials A connection configuration object containing cookie and substackUrl.
-   * @returns A promise resolving to true if authentication is successful, false otherwise.
-   */
-  async authenticate(credentials: ConnectionConfig): Promise<boolean> {
-    this.configure(credentials); // Configure before testing connection
-    const testResult = await this.testConnection();
-    return testResult.success;
-  }
+		this.currentUser = null;
+		this.publicationId = null;
+		this.lastConnectionError = undefined;
+	}
 
-  /**
-   * Tests the connection to Substack and obtains user/publication information.
-   * This method also sets the internal currentUser and publicationId state.
-   * @returns A promise resolving to a ConnectionTestResult.
-   */
-  async testConnection(): Promise<ConnectionTestResult> {
-    if (!this.isConfiguredInternal()) {
-      const error = 'SubstackAdapter not configured for connection test. Missing cookie or URL.';
-      this.lastConnectionError = error;
-      this.logger.error(error, 'ERROR');
-      return { success: false, error: error };
-    }
+	async authenticate(credentials: ConnectionConfig): Promise<boolean> {
+		this.configure(credentials);
+		const testResult = await this.testConnection();
+		return testResult.success;
+	}
 
-    this.currentUser = null;
-    this.publicationId = null;
-    this.lastConnectionError = undefined;
+	async testConnection(): Promise<ConnectionTestResult> {
+		if (!this.isConfiguredInternal()) {
+			const error = 'SubstackAdapter not configured. Missing cookie or URL.';
+			this.lastConnectionError = error;
+			return { success: false, error };
+		}
 
-    try {
-      // Try to obtain user info
-      const response = await this.client!.get('/api/v1/user/self');
+		this.currentUser = null;
+		this.publicationId = null;
+		this.lastConnectionError = undefined;
 
-      if (response.status === 200 && response.json) {
-        this.currentUser = {
-          id: response.json.id || 0,
-          name: response.json.name || response.json.username || 'User',
-          email: response.json.email || '',
-          handle: response.json.handle
-        };
-        await this.getPublicationId(); // Fetch publication ID
-        return { success: true, user: this.currentUser };
-      }
+		try {
+			const response = await this.client!.get('/api/v1/user/self');
 
-      // Fallback: try /api/v1/publication
-      const pubResponse = await this.client!.get('/api/v1/publication');
-      if (pubResponse.status === 200 && pubResponse.json) {
-        this.currentUser = {
-          id: 0, // No user ID from this endpoint
-          name: pubResponse.json.name || 'Publisher',
-          email: '',
-          handle: undefined
-        };
-        await this.getPublicationId(); // Fetch publication ID
-        return { success: true, user: this.currentUser };
-      }
+			if (response.status === 200 && response.json) {
+				const json = response.json as Record<string, unknown>;
+				this.currentUser = {
+					id: (json.id as number) || 0,
+					name: (json.name as string) || (json.username as string) || 'User',
+					email: (json.email as string) || '',
+					handle: json.handle as string | undefined,
+				};
+				await this.getPublicationId();
+				return { success: true, user: this.currentUser };
+			}
 
-      const errorMsg = response.status === 403
-        ? '403 Forbidden: Cookie expired or insufficient permissions'
-        : `Error ${response.status}: ${response.text?.substring(0, 100)}`;
-      this.lastConnectionError = errorMsg;
-      this.logger.error(`Substack connection failed: ${errorMsg}`, 'ERROR');
-      return { success: false, error: errorMsg };
+			if (response.status === 401 || response.status === 403) {
+				const errorMsg =
+					'Cookie expirado ou sem permissão — atualize connect.sid nas Settings.';
+				this.lastConnectionError = errorMsg;
+				return { success: false, error: errorMsg };
+			}
 
-    } catch (error: any) {
-      this.lastConnectionError = error.message;
-      this.logger.error(`Substack connection test failed: ${error.message}`, error);
-      return { success: false, error: error.message };
-    }
-  }
+			const pubResponse = await this.client!.get('/api/v1/publication');
+			if (pubResponse.status === 200 && pubResponse.json) {
+				const json = pubResponse.json as Record<string, unknown>;
+				this.currentUser = {
+					id: 0,
+					name: (json.name as string) || 'Publisher',
+					email: '',
+				};
+				await this.getPublicationId();
+				return { success: true, user: this.currentUser };
+			}
 
-  /**
-   * Publishes a post to Substack. This method will create a draft and then publish it if 'isDraft' is false.
-   * @param post The universal post format.
-   * @param options Publishing options, including whether to publish as a draft or live.
-   * @returns A promise resolving to a PublishResult.
-   */
-  async publish(post: UniversalPost, options: PublishOptions): Promise<PublishResult> {
-    if (!this.isReadyForPublishingInternal()) {
-      return { success: false, error: 'SubstackAdapter not ready for publishing. Configuration or connection issue.' };
-    }
+			const errorMsg = `Error ${response.status}`;
+			this.lastConnectionError = errorMsg;
+			return { success: false, error: errorMsg };
+		} catch (error: unknown) {
+			const message = error instanceof Error ? error.message : String(error);
+			this.lastConnectionError = message;
+			return { success: false, error: message };
+		}
+	}
 
-    this.logger.log(`Attempting to publish: "${post.title}" (isDraft: ${options.isDraft})`, 'INFO');
+	async publish(post: UniversalPost, options: PublishOptions): Promise<PublishResult> {
+		if (!this.isReadyForPublishingInternal()) {
+			return {
+				success: false,
+				error: 'SubstackAdapter not ready. Test connection in Settings.',
+			};
+		}
 
-    try {
-      // Always create a draft first
-      const draftCreationResult = await this.createDraftInternal(post);
-      if (!draftCreationResult.success || !draftCreationResult.draftId) {
-        return { success: false, error: draftCreationResult.error || 'Failed to create draft.' };
-      }
+		const audience = (options.audience ?? this.defaultAudience) as SubstackAudience;
+		const scheduledAt = options.scheduledAt ?? post.scheduledDate;
+		const wantLive = !options.isDraft && !scheduledAt;
 
-      // If not meant to be a draft, then publish it
-      if (!options.isDraft) {
-        const publishInternalResult = await this.publishDraftInternal(draftCreationResult.draftId);
-        return {
-          success: publishInternalResult.success,
-          error: publishInternalResult.error,
-          postId: publishInternalResult.postId,
-          postUrl: publishInternalResult.postUrl,
-          platformResponse: publishInternalResult.platformResponse
-        };
-      }
+		this.logger.log(
+			`Publish "${post.title}" draft=${options.isDraft} schedule=${!!scheduledAt} audience=${audience}`,
+			'INFO',
+		);
 
-      // If it's meant to be a draft, return the draft creation result as a PublishResult
-      return {
-        success: true,
-        postUrl: draftCreationResult.draftUrl,
-        postId: String(draftCreationResult.draftId)
-      };
+		try {
+			const draft = await this.createDraftInternal(post, audience);
+			if (!draft.success || !draft.draftId) {
+				return { success: false, error: draft.error || 'Failed to create draft.' };
+			}
 
-    } catch (error: any) {
-      const message = error instanceof SubstackError
-        ? error.message
-        : error.message || 'Unknown error during Substack publish.';
-      this.logger.error(`Failed to publish post to Substack: ${message}`, error);
-      return { success: false, error: message };
-    }
-  }
+			if (scheduledAt) {
+				const sched = await this.scheduleDraftInternal(draft.draftId, scheduledAt, audience);
+				if (!sched.success) {
+					return {
+						success: false,
+						error: sched.error,
+						postId: String(draft.draftId),
+						postUrl: draft.draftUrl,
+					};
+				}
+				return {
+					success: true,
+					postId: String(draft.draftId),
+					postUrl: draft.draftUrl,
+				};
+			}
 
-  /**
-   * Creates a draft post on Substack.
-   * @param post The universal post format.
-   * @returns A promise resolving to a DraftResult.
-   */
-  async createDraft(post: UniversalPost): Promise<DraftResult> {
-    if (!this.isReadyForPublishingInternal()) {
-      return { success: false, error: 'SubstackAdapter not ready for creating draft. Configuration or connection issue.' };
-    }
-    return this.createDraftInternal(post);
-  }
+			if (wantLive) {
+				return await this.publishDraftInternal(draft.draftId);
+			}
 
-  /**
-   * Internal method to handle the actual draft creation on Substack.
-   * @param post The universal post format.
-   * @returns A promise resolving to an object containing success, error, and draftId.
-   */
-  private async createDraftInternal(post: UniversalPost): Promise<{ success: boolean; error?: string; draftId?: number; draftUrl?: string }> {
-    try {
-      const pubId = await this.getPublicationId();
-      if (!pubId) {
-        return { success: false, error: 'Substack publication ID not found.' };
-      }
+			return {
+				success: true,
+				postUrl: draft.draftUrl,
+				postId: String(draft.draftId),
+			};
+		} catch (error: unknown) {
+			const message =
+				error instanceof SubstackError
+					? error.message
+					: error instanceof Error
+						? error.message
+						: 'Unknown Substack error';
+			this.logger.error(`Failed to publish: ${message}`, error);
+			return { success: false, error: message };
+		}
+	}
 
-      // Use contentHtml if provided, otherwise convert markdown
-      const bodyHtml = post.contentHtml || this.convertMarkdownToHtml(post.content);
+	async createDraft(post: UniversalPost): Promise<DraftResult> {
+		if (!this.isReadyForPublishingInternal()) {
+			return { success: false, error: 'SubstackAdapter not ready.' };
+		}
+		return this.createDraftInternal(post, this.defaultAudience);
+	}
 
-      const payload = this.payloadBuilder!.buildDraftPayload({
-        title: post.title,
-        bodyHtml: bodyHtml,
-        subtitle: post.subtitle
-        // Other options can be passed here once payloadBuilder is extended
-      }, this.currentUser);
+	/**
+	 * Fluxo validado no handoff: draft vazio → upload imagens → PUT body ProseMirror.
+	 */
+	private async createDraftInternal(
+		post: UniversalPost,
+		audience: SubstackAudience,
+	): Promise<{ success: boolean; error?: string; draftId?: number; draftUrl?: string }> {
+		try {
+			const pubId = await this.getPublicationId();
+			if (!pubId) {
+				return { success: false, error: 'Substack publication ID not found.' };
+			}
 
-      const validation = this.payloadBuilder!.validatePayload(payload);
-      if (!validation.valid) {
-        return { success: false, error: `Invalid payload: ${validation.error}` };
-      }
+			const empty = this.payloadBuilder!.buildEmptyDraftPayload(
+				post.title,
+				audience,
+				this.currentUser,
+			);
+			const createRes = await this.client!.post(
+				`/api/v1/drafts?publication_id=${pubId}`,
+				empty,
+			);
 
-      const response = await this.client!.post(
-        `/api/v1/drafts?publication_id=${pubId}`,
-        payload
-      );
+			if (createRes.status !== 200 && createRes.status !== 201) {
+				if (createRes.status === 401 || createRes.status === 403) {
+					return {
+						success: false,
+						error: 'Cookie expirado — atualize connect.sid nas Settings.',
+					};
+				}
+				const err = this.errorHandler!.handle(createRes, 'Substack draft creation');
+				throw err;
+			}
 
-      if (response.status === 200 || response.status === 201) {
-        const data: DraftResponse = response.json;
-        const draftId = data.id || data.draft_id;
-        this.logger.log(`Substack draft created: ${draftId}`, 'INFO');
-        // Log word_count for debugging if needed (as in original SubstackService)
-        return {
-          success: true,
-          draftId,
-          draftUrl: `${this.baseUrl}/publish/post/${draftId}`
-        };
-      }
+			const data = createRes.json as DraftResponse;
+			const draftId = data.id || data.draft_id;
+			if (!draftId) {
+				return { success: false, error: 'Draft criado sem id na resposta.' };
+			}
 
-      const error = this.errorHandler!.handle(response, 'Substack draft creation');
-      throw error;
+			// Monta doc (imagens pendentes) → upload → captionedImage
+			const skeleton = this.proseBuilder.build(post.content);
+			let finalDoc = skeleton;
+			if (this.app) {
+				finalDoc = await this.imageResolver.process(skeleton, {
+					app: this.app,
+					client: this.client!,
+					baseUrl: this.baseUrl,
+					draftId,
+				});
+			} else {
+				this.logger.log('App não injetado — imagens locais não serão enviadas', 'WARN');
+			}
 
-    } catch (error: any) {
-      const message = error instanceof SubstackError
-        ? error.message
-        : error.message || 'Unknown error during Substack draft creation.';
-      this.logger.error(`Failed to create draft on Substack: ${message}`, error);
-      return { success: false, error: message };
-    }
-  }
+			const updateBody = this.payloadBuilder!.buildUpdateBodyPayload(
+				post.title,
+				audience,
+				finalDoc,
+				post.subtitle,
+			);
 
-  /**
-   * Internal method to publish an existing draft on Substack.
-   * @param draftId The ID of the draft to publish.
-   * @returns A promise resolving to a PublishResult.
-   */
-  private async publishDraftInternal(draftId: number): Promise<PublishResult> {
-    try {
-      this.logger.log(`Publishing Substack draft: ${draftId}`, 'INFO');
+			const putRes = await this.client!.put(`/api/v1/drafts/${draftId}`, updateBody);
+			if (putRes.status !== 200 && putRes.status !== 201) {
+				this.logger.log(`PUT draft body HTTP ${putRes.status}`, 'WARN');
+				// Draft existe; corpo pode estar vazio — reporta parcial
+				return {
+					success: false,
+					error: `Draft ${draftId} criado, mas falhou ao gravar o corpo (HTTP ${putRes.status}).`,
+					draftId,
+					draftUrl: `${this.baseUrl}/publish/post/${draftId}`,
+				};
+			}
 
-      const response = await this.client!.post(
-        `/api/v1/drafts/${draftId}/publish`,
-        { send: true }
-      );
+			this.logger.log(`Substack draft ready: ${draftId}`, 'INFO');
+			return {
+				success: true,
+				draftId,
+				draftUrl: `${this.baseUrl}/publish/post/${draftId}`,
+			};
+		} catch (error: unknown) {
+			const message =
+				error instanceof SubstackError
+					? error.message
+					: error instanceof Error
+						? error.message
+						: 'Unknown draft error';
+			this.logger.error(`Failed to create draft: ${message}`, error);
+			return { success: false, error: message };
+		}
+	}
 
-      if (response.status === 200 || response.status === 201) {
-        const postUrl = `${this.baseUrl}/p/${draftId}`;
-        this.logger.log(`Substack post published: ${postUrl}`, 'INFO');
-        return { success: true, postId: String(draftId), postUrl };
-      }
+	private async scheduleDraftInternal(
+		draftId: number,
+		when: Date,
+		audience: SubstackAudience,
+	): Promise<{ success: boolean; error?: string }> {
+		const triggerAt = when.toISOString();
+		try {
+			await this.client!.prepublish(draftId, triggerAt);
+			const res = await this.client!.scheduleRelease(draftId, triggerAt, audience);
+			if (res.status === 200 || res.status === 201) {
+				this.logger.log(`Scheduled draft ${draftId} at ${triggerAt}`, 'INFO');
+				return { success: true };
+			}
+			if (res.status === 401 || res.status === 403) {
+				return {
+					success: false,
+					error: 'Cookie expirado — atualize connect.sid nas Settings.',
+				};
+			}
+			return {
+				success: false,
+				error: `Falha ao agendar (HTTP ${res.status}).`,
+			};
+		} catch (error: unknown) {
+			const message = error instanceof Error ? error.message : String(error);
+			return { success: false, error: message };
+		}
+	}
 
-      // If publishing fails but draft was created, consider it a partial success
-      return {
-        success: true, // Draft was created, so not a full failure
-        postId: String(draftId),
-        postUrl: `${this.baseUrl}/publish/post/${draftId}`,
-        error: 'Draft created, but automatic publishing failed. Please publish manually on Substack.'
-      };
+	private async publishDraftInternal(draftId: number): Promise<PublishResult> {
+		try {
+			const response = await this.client!.post(`/api/v1/drafts/${draftId}/publish`, {
+				send: true,
+			});
 
-    } catch (error: any) {
-      // Draft was created even if publishing failed, so report partial success
-      return {
-        success: true,
-        postId: String(draftId),
-        postUrl: `${this.baseUrl}/publish/post/${draftId}`,
-        error: 'Draft created. Automatic publishing failed due to an error. Please publish manually on Substack.'
-      };
-    }
-  }
+			if (response.status === 200 || response.status === 201) {
+				const postUrl = `${this.baseUrl}/p/${draftId}`;
+				return { success: true, postId: String(draftId), postUrl };
+			}
 
-  /**
-   * Checks if the adapter is configured (cookie and base URL are set).
-   * @returns True if configured, false otherwise.
-   */
-  private isConfiguredInternal(): boolean {
-    return !!this.cookie && !!this.baseUrl && !!this.client;
-  }
+			return {
+				success: true,
+				postId: String(draftId),
+				postUrl: `${this.baseUrl}/publish/post/${draftId}`,
+				error: 'Draft created, but automatic publishing failed. Publish manually on Substack.',
+			};
+		} catch {
+			return {
+				success: true,
+				postId: String(draftId),
+				postUrl: `${this.baseUrl}/publish/post/${draftId}`,
+				error: 'Draft created. Automatic publishing failed. Publish manually on Substack.',
+			};
+		}
+	}
 
-  /**
-   * Checks if the adapter is fully ready for publishing (configured, authenticated, publication ID found).
-   * @returns True if ready, false otherwise.
-   */
-  private isReadyForPublishingInternal(): boolean {
-    return this.isConfiguredInternal() && !!this.currentUser && !!this.publicationId;
-  }
+	private isConfiguredInternal(): boolean {
+		return !!this.cookie && !!this.baseUrl && !!this.client;
+	}
 
-  /**
-   * Returns a detailed status of the adapter's configuration and connection.
-   * @returns An object indicating if the adapter is configured, connected, and optionally user info and errors.
-   */
-  getDetailedStatus(): { isConfigured: boolean; isConnected: boolean; user?: UserInfo; error?: string; } {
-    return {
-      isConfigured: this.isConfiguredInternal(),
-      isConnected: this.isReadyForPublishingInternal(),
-      user: this.currentUser || undefined,
-      error: this.lastConnectionError
-    };
-  }
+	private isReadyForPublishingInternal(): boolean {
+		return this.isConfiguredInternal() && !!this.currentUser && !!this.publicationId;
+	}
 
-  /**
-   * Retrieves the Substack publication ID, utilizing internal strategies.
-   * Caches the ID for subsequent calls.
-   * @returns A promise resolving to the publication ID, or null if not found.
-   */
-  private async getPublicationId(): Promise<number | null> {
-    if (this.publicationId) {
-      return this.publicationId;
-    }
+	getDetailedStatus(): {
+		isConfigured: boolean;
+		isConnected: boolean;
+		user?: UserInfo;
+		error?: string;
+	} {
+		return {
+			isConfigured: this.isConfiguredInternal(),
+			isConnected: this.isReadyForPublishingInternal(),
+			user: this.currentUser || undefined,
+			error: this.lastConnectionError,
+		};
+	}
 
-    if (!this.idManager || !this.client) {
-      this.logger.warn('ID Manager or Client not initialized for getPublicationId.', 'WARN');
-      return null;
-    }
+	private async getPublicationId(): Promise<number | null> {
+		if (this.publicationId) return this.publicationId;
+		if (!this.idManager || !this.client) return null;
 
-    // Define strategies in order of preference
-    const strategies = [
-      new PublicationEndpointStrategy(this.client, this.logger),
-      new ArchiveStrategy(this.client, this.logger),
-      new UserSelfStrategy(this.client, this.logger)
-    ];
+		const strategies = [
+			new PublicationEndpointStrategy(this.client, this.logger),
+			new ArchiveStrategy(this.client, this.logger),
+			new UserSelfStrategy(this.client, this.logger),
+		];
+		this.publicationId = await this.idManager.findPublicationId(strategies);
+		return this.publicationId;
+	}
 
-    this.publicationId = await this.idManager.findPublicationId(strategies);
-    return this.publicationId;
-  }
+	private normalizeCookie(cookie: string): string {
+		let normalized = cookie.trim();
+		normalized = normalized.replace(/^cookie:\s*/i, '');
+		const match = normalized.match(/connect\.sid=([^;\s]+)/);
+		return match && match[1] ? match[1] : normalized;
+	}
 
-  /**
-   * Normalizes the provided cookie string to extract the `connect.sid` value.
-   * @param cookie The raw cookie string.
-   * @returns The normalized cookie value.
-   */
-  private normalizeCookie(cookie: string): string {
-    let normalized = cookie.trim();
-    normalized = normalized.replace(/^cookie:\s*/i, ''); // Remove "cookie: " prefix
-    const match = normalized.match(/connect\.sid=([^;\s]+)/);
-    return match && match[1] ? match[1] : normalized; // Return extracted sid or original if no match
-  }
-
-  /**
-   * Builds the base URL for Substack API requests from a given URL.
-   * @param url The Substack URL (e.g., 'yourname.substack.com').
-   * @returns The normalized base URL (e.g., 'https://yourname.substack.com').
-   */
-  private buildBaseUrl(url: string): string {
-    let hostname = url.trim();
-    hostname = hostname.replace(/^https?:\/\//, ''); // Remove protocol
-    hostname = hostname.replace(/\/.*$/, '');     // Remove path and trailing slash
-    if (!hostname.includes('.')) {                 // If no full domain, add .substack.com
-      hostname = `${hostname}.substack.com`;
-    }
-    return `https://${hostname}`;
-  }
-
-  /**
-   * Converts Markdown content to HTML. (Placeholder for now, will use MarkdownConverter).
-   * This is a temporary placeholder and will eventually utilize a proper MarkdownConverter instance.
-   * @param markdown The markdown string to convert.
-   * @returns The converted HTML string.
-   */
-  private convertMarkdownToHtml(markdown: string): string {
-    // This will eventually use the MarkdownConverter, but for now, a simple passthrough or basic conversion.
-    // In a real scenario, MarkdownConverter instance would be passed or created here.
-    return `<p>${markdown}</p>`; // Basic placeholder
-  }
+	private buildBaseUrl(url: string): string {
+		let hostname = url.trim();
+		hostname = hostname.replace(/^https?:\/\//, '');
+		hostname = hostname.replace(/\/.*$/, '');
+		if (!hostname.includes('.')) {
+			hostname = `${hostname}.substack.com`;
+		}
+		return `https://${hostname}`;
+	}
 }

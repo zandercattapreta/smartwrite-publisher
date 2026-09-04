@@ -5,6 +5,7 @@
 
 import { PublishOptions, DraftPayload, ValidationResult, SubstackUserInfo } from './types';
 import { Logger } from '../logger';
+import type { SubstackAudience } from './proseMirrorTypes';
 
 export class PayloadBuilder {
 	private logger: Logger;
@@ -14,133 +15,112 @@ export class PayloadBuilder {
 	}
 
 	/**
-	 * Construir payload para criar draft
-	 * Uma única fonte da verdade para estrutura de payload
+	 * Payload mínimo para criar draft vazio (passo 1 do fluxo com imagens).
 	 */
-	buildDraftPayload(options: PublishOptions, user: SubstackUserInfo | null): DraftPayload {
-		// Validar entrada
-		const validation = this.validateOptions(options);
-		if (!validation.valid) {
-			throw new Error(`Payload inválido: ${validation.error}`);
-		}
-
-		// Construir payload base (sempre obrigatório)
+	buildEmptyDraftPayload(
+		title: string,
+		audience: SubstackAudience,
+		user: SubstackUserInfo | null,
+	): DraftPayload {
 		const payload: DraftPayload = {
-			draft_title: options.title.trim(),
-			bodyJson: options.bodyHtml, // Manter para compatibilidade
+			draft_title: title.trim(),
 			type: 'newsletter',
-			draft_bylines: []
+			draft_bylines: [],
+			audience,
 		};
 
-		// EXPERIMENTAL: Testar múltiplos campos de conteúdo
-		// Substack pode aceitar diferentes nomes de campo
-		const contentString = typeof options.bodyHtml === 'string' ? options.bodyHtml : JSON.stringify(options.bodyHtml);
-
-		payload.body = contentString;           // Tentativa 1: campo 'body'
-		payload.draft_body = contentString;      // Tentativa 2: campo 'draft_body'
-		payload.body_markdown = contentString;   // Tentativa 3: campo 'body_markdown'
-
-		// Log detalhado do conteúdo
-		this.logger.log(`Conteúdo preparado: ${contentString.length} chars`, 'INFO');
-		this.logger.log(`Primeiro 100 chars: ${contentString.substring(0, 100)}...`, 'INFO');
-
-		// Adicionar subtitle apenas se tiver valor
-		if (options.subtitle && options.subtitle.trim()) {
-			payload.draft_subtitle = options.subtitle.trim();
-		}
-
-		// Adicionar bylines se user tiver ID válido
 		if (user?.id && user.id > 0) {
 			payload.draft_bylines = [{ user_id: user.id }];
-			this.logger.log(`Byline incluído para user ID: ${user.id}`, 'INFO');
-		} else {
-			// IMPORTANTE: draft_bylines DEVE estar sempre presente (mesmo que vazio)
-			// A API do Substack rejeita requests sem este campo
-			payload.draft_bylines = [];
 		}
-
-		this.logger.log(`Payload criado com campos: ${Object.keys(payload).join(', ')}`, 'INFO');
 
 		return payload;
 	}
 
 	/**
-	 * Validar opções de publicação
+	 * Body do PUT: draft_body = JSON string do doc ProseMirror.
 	 */
-	private validateOptions(options: PublishOptions): ValidationResult {
-		if (!options.title || options.title.trim().length === 0) {
-			return {
-				valid: false,
-				error: 'Título é obrigatório',
-				field: 'title'
-			};
+	buildUpdateBodyPayload(
+		title: string,
+		audience: SubstackAudience,
+		proseMirrorDoc: object,
+		subtitle?: string,
+	): Record<string, unknown> {
+		const draftBody = JSON.stringify(proseMirrorDoc);
+		const payload: Record<string, unknown> = {
+			draft_title: title.trim(),
+			audience,
+			draft_body: draftBody,
+		};
+		if (subtitle?.trim()) {
+			payload.draft_subtitle = subtitle.trim();
 		}
-
-		// Validar bodyHtml - pode ser string (legado) ou TiptapDocument
-		if (!options.bodyHtml) {
-			return {
-				valid: false,
-				error: 'Corpo do texto é obrigatório',
-				field: 'bodyHtml'
-			};
-		}
-
-		// Se é string, verificar se não está vazio
-		if (typeof options.bodyHtml === 'string' && options.bodyHtml.trim().length === 0) {
-			return {
-				valid: false,
-				error: 'Corpo do texto é obrigatório',
-				field: 'bodyHtml'
-			};
-		}
-
-		// Se é objeto (TiptapDocument), verificar estrutura básica
-		if (typeof options.bodyHtml === 'object' && !Array.isArray(options.bodyHtml)) {
-			const doc = options.bodyHtml as any;
-			if (doc.type !== 'doc' || !doc.attrs || !Array.isArray(doc.content)) {
-				return {
-					valid: false,
-					error: 'Formato Tiptap JSON inválido',
-					field: 'bodyHtml'
-				};
-			}
-		}
-
-		if (options.title.length > 500) {
-			return {
-				valid: false,
-				error: 'Título muito longo (máximo 500 caracteres)',
-				field: 'title'
-			};
-		}
-
-		return { valid: true };
+		this.logger.log(`draft_body length: ${draftBody.length}`, 'INFO');
+		return payload;
 	}
 
 	/**
-	 * Validar payload antes de enviar
+	 * @deprecated Prefer buildEmptyDraftPayload + PUT. Mantido para compat.
 	 */
-	validatePayload(payload: DraftPayload): ValidationResult {
-		// draft_bylines deve estar sempre presente
-		if (!Array.isArray(payload.draft_bylines)) {
-			return {
-				valid: false,
-				error: 'draft_bylines deve ser um array',
-				field: 'draft_bylines'
-			};
+	buildDraftPayload(options: PublishOptions, user: SubstackUserInfo | null): DraftPayload {
+		const validation = this.validateOptions(options);
+		if (!validation.valid) {
+			throw new Error(`Payload inválido: ${validation.error}`);
 		}
 
-		// Se draft_bylines tem user_id, deve ser número válido
+		const contentString =
+			typeof options.bodyHtml === 'string'
+				? options.bodyHtml
+				: JSON.stringify(options.bodyHtml);
+
+		const payload: DraftPayload = {
+			draft_title: options.title.trim(),
+			bodyJson: options.bodyHtml,
+			type: 'newsletter',
+			draft_bylines: [],
+			draft_body: contentString,
+			audience: options.audience ?? 'everyone',
+		};
+
+		if (options.subtitle?.trim()) {
+			payload.draft_subtitle = options.subtitle.trim();
+		}
+
+		if (user?.id && user.id > 0) {
+			payload.draft_bylines = [{ user_id: user.id }];
+		}
+
+		return payload;
+	}
+
+	private validateOptions(options: PublishOptions): ValidationResult {
+		if (!options.title || options.title.trim().length === 0) {
+			return { valid: false, error: 'Título é obrigatório', field: 'title' };
+		}
+		if (!options.bodyHtml) {
+			return { valid: false, error: 'Corpo do texto é obrigatório', field: 'bodyHtml' };
+		}
+		if (typeof options.bodyHtml === 'string' && options.bodyHtml.trim().length === 0) {
+			return { valid: false, error: 'Corpo do texto é obrigatório', field: 'bodyHtml' };
+		}
+		if (options.title.length > 500) {
+			return { valid: false, error: 'Título muito longo (máximo 500 caracteres)', field: 'title' };
+		}
+		return { valid: true };
+	}
+
+	validatePayload(payload: DraftPayload): ValidationResult {
+		if (!Array.isArray(payload.draft_bylines)) {
+			return { valid: false, error: 'draft_bylines deve ser um array', field: 'draft_bylines' };
+		}
 		for (const byline of payload.draft_bylines) {
 			if (byline.user_id && typeof byline.user_id !== 'number') {
 				return {
 					valid: false,
 					error: 'user_id deve ser número',
-					field: 'draft_bylines[].user_id'
+					field: 'draft_bylines[].user_id',
 				};
 			}
 		}
-
 		return { valid: true };
 	}
 }

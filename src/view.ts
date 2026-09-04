@@ -10,6 +10,7 @@ import { SETTINGS } from "./constants";
 import { UniversalPost, PublishOptions, ConnectionTestResult, UserInfo } from './core/BlogPlatformAdapter';
 import { PlatformManager } from './core/PlatformManager';
 import { HelpModal } from "./modal";
+import { ScheduleModal } from "./ui/modals/ScheduleModal";
 
 export const VIEW_TYPE_PUBLISHER = "smartwrite-publisher-view";
 
@@ -236,9 +237,10 @@ export class PublisherView extends ItemView {
 		publishLiveBtn.onclick = () => this.handlePublish(false);
 		this.publishBtns.push(publishLiveBtn);
 
-		// Botão Schedule (desabilitado por enquanto)
-		const scheduleBtn = actionButtons.createEl("button", { text: "Schedule", attr: { disabled: "true" } });
-		scheduleBtn.title = "Coming soon";
+		// Botão Schedule
+		const scheduleBtn = actionButtons.createEl("button", { text: "Schedule" });
+		scheduleBtn.onclick = () => this.handleSchedule();
+		this.publishBtns.push(scheduleBtn);
 
 		// --- Section: Batch Publishing ---
 		const batchSection = container.createDiv({ cls: "publisher-section collapsible-section" });
@@ -507,6 +509,7 @@ export class PublisherView extends ItemView {
 
 			const publishOptions: PublishOptions = {
 				isDraft: isDraft,
+				audience: this.plugin.settings.defaultAudience,
 			};
 
 			// Publish using PlatformManager
@@ -543,6 +546,95 @@ export class PublisherView extends ItemView {
 			const errorMsg = error?.message || String(error);
 			new Notice(`Error publishing: ${errorMsg}`);
 			this.plugin.logger.log("Exception in handlePublish", 'ERROR', error);
+		} finally {
+			notice.hide();
+			this.isPublishing = false;
+			this.setPublishButtonsState(false);
+			this.refreshLogs();
+		}
+	}
+
+	/**
+	 * Abre modal de data/hora e publica como draft agendado.
+	 */
+	async handleSchedule() {
+		if (!this.activeFile) {
+			new Notice("No note selected.");
+			return;
+		}
+		new ScheduleModal(this.app, (when) => {
+			void this.publishWithSchedule(when);
+		}).open();
+	}
+
+	private async publishWithSchedule(when: Date) {
+		if (!this.activeFile) return;
+
+		const platformsToPublish = Array.from(this.selectedPlatforms);
+		if (platformsToPublish.length === 0) {
+			new Notice("Please select at least one platform.");
+			return;
+		}
+		for (const platformId of platformsToPublish) {
+			const platform = this.plugin.platformManager.getPlatform(platformId);
+			if (!platform || !platform.adapter.getDetailedStatus().isConnected) {
+				new Notice(`${platform?.name || platformId} is not connected. Please check settings.`);
+				return;
+			}
+		}
+		if (this.isPublishing) {
+			new Notice("Publishing in progress...");
+			return;
+		}
+
+		this.isPublishing = true;
+		this.setPublishButtonsState(true);
+		const notice = new Notice(`Scheduling: ${this.activeFile.basename}...`, 0);
+
+		try {
+			const content = await this.app.vault.read(this.activeFile);
+			const converted = this.converter.convert(content, this.activeFile.basename);
+			const universalPost: UniversalPost = {
+				title: converted.title,
+				subtitle: converted.subtitle,
+				content,
+				contentHtml:
+					typeof converted.html === "string"
+						? converted.html
+						: JSON.stringify(converted.html),
+			};
+			const publishOptions: PublishOptions = {
+				isDraft: true,
+				audience: this.plugin.settings.defaultAudience,
+				scheduledAt: when,
+			};
+			const results = await this.plugin.platformManager.publishPost(
+				universalPost,
+				platformsToPublish,
+				publishOptions,
+			);
+			let allSuccess = true;
+			results.forEach((result, platformId) => {
+				if (!result.success) {
+					allSuccess = false;
+					this.plugin.logger.log(
+						`Schedule error (${platformId}): ${result.error}`,
+						"ERROR",
+					);
+				}
+			});
+			if (allSuccess) {
+				new Notice(`Agendado para ${when.toLocaleString()}.`);
+				if (this.statusBadgeEl) {
+					this.statusBadgeEl.textContent = "Scheduled";
+					this.statusBadgeEl.className = "status-badge draft";
+				}
+			} else {
+				new Notice("Agendamento com erros — veja o log.");
+			}
+		} catch (error: unknown) {
+			const errorMsg = error instanceof Error ? error.message : String(error);
+			new Notice(`Error scheduling: ${errorMsg}`);
 		} finally {
 			notice.hide();
 			this.isPublishing = false;
@@ -618,7 +710,10 @@ export class PublisherView extends ItemView {
 
 		this.plugin.logger.log(`Starting batch publish: ${totalFiles} files (${concurrency}x concurrency)`);
 
-		const publishOptions: PublishOptions = { isDraft: true }; // Always drafts for batch
+		const publishOptions: PublishOptions = {
+			isDraft: true,
+			audience: this.plugin.settings.defaultAudience,
+		}; // Always drafts for batch
 
 		// Process in batches
 		for (let i = 0; i < selectedFiles.length; i += concurrency) {

@@ -21,6 +21,8 @@ export interface SmartWriteSettings {
 	substackUrl: string;
 	mediumApiKey: string;
 	wordpressConfig: WordPressConfig;
+	/** Audiência padrão Substack */
+	defaultAudience: 'everyone' | 'only_paid' | 'only_free';
 }
 
 const DEFAULT_SETTINGS: SmartWriteSettings = {
@@ -31,7 +33,8 @@ const DEFAULT_SETTINGS: SmartWriteSettings = {
 		url: '',
 		username: '',
 		appPassword: ''
-	}
+	},
+	defaultAudience: 'only_paid',
 };
 
 /**
@@ -73,6 +76,8 @@ export default class SmartWritePublisher extends Plugin {
 				cookie: this.settings.cookies,
 				substackUrl: this.settings.substackUrl
 			});
+			substackAdapter.setApp(this.app);
+			substackAdapter.setDefaultAudience(this.settings.defaultAudience);
 
 			// Initialize and register Medium Adapter
 			const mediumAdapter = new MediumAdapter(this.logger);
@@ -225,7 +230,10 @@ export default class SmartWritePublisher extends Plugin {
 				substackUrl: this.settings.substackUrl
 			};
 			this.platformManager.updatePlatformConfig('substack', { credentials: config });
-			substackPlatform.adapter.configure(config); // Configure adapter directly
+			substackPlatform.adapter.configure(config);
+			const substackAdapter = substackPlatform.adapter as SubstackAdapter;
+			substackAdapter.setApp(this.app);
+			substackAdapter.setDefaultAudience(this.settings.defaultAudience);
 		}
 
 		// Update Medium adapter configuration via PlatformManager
